@@ -1,42 +1,81 @@
 package com.bytebooks.api.service.libro.Impl;
 
+import com.bytebooks.api.domain.Categoria;
 import com.bytebooks.api.domain.Libro;
+import com.bytebooks.api.dto.libro.LibroRequestDto;
+import com.bytebooks.api.dto.libro.LibroResponseDto;
+import com.bytebooks.api.mapper.libro.LibroMapper;
 import com.bytebooks.api.repository.LibroRepository;
+import com.bytebooks.api.service.categoria.CategoriaService;
 import com.bytebooks.api.service.libro.LibroService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
 public class LibroServiceImpl implements LibroService {
 
-    @Autowired
-    private LibroRepository libroRepository;
+    private final LibroRepository libroRepository;
+    private final CategoriaService categoriaService;
+    private final LibroMapper libroMapper;
 
-    @Override
-    public Libro getLibroById(UUID id) {
-        return libroRepository.getReferenceById(id);
+    public LibroServiceImpl(LibroRepository libroRepository,
+                            CategoriaService categoriaService,
+                            LibroMapper libroMapper) {
+        this.libroRepository = libroRepository;
+        this.categoriaService = categoriaService;
+        this.libroMapper = libroMapper;
     }
 
     @Override
-    public List<Libro> obtenerTodosLosLibros() {
-        return libroRepository.findAll();
+    public LibroResponseDto getLibroById(UUID id) {
+        Libro libro = libroRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Libro no encontrado con id: " + id));
+        return libroMapper.toResponseDto(libro);
     }
 
     @Override
-    public Libro agregarLibro(Libro libro) {
-        return libroRepository.save(libro);
+    public List<LibroResponseDto> getAllLibros() {
+        return libroRepository.findAll().stream()
+                .map(libroMapper::toResponseDto)
+                .toList();
+    }
+
+    @Override
+    public LibroResponseDto agregarLibro(LibroRequestDto request) {
+        Categoria categoria = categoriaService.getCategoriaEntityById(request.categoriaId());
+
+        Libro libro = new Libro();
+        libro.setTitulo(request.titulo());
+        libro.setAutor(request.autor());
+        libro.setDescripcion(request.descripcion());
+        libro.setCategoria(categoria);
+
+        return libroMapper.toResponseDto(libroRepository.save(libro));
+    }
+
+    @Override
+    public LibroResponseDto actualizarLibro(UUID id, LibroRequestDto request) {
+        Libro libro = libroRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Libro no encontrado con id: " + id));
+
+        Categoria categoria = categoriaService.getCategoriaEntityById(request.categoriaId());
+
+        libro.setTitulo(request.titulo());
+        libro.setAutor(request.autor());
+        libro.setDescripcion(request.descripcion());
+        libro.setCategoria(categoria);
+
+        return libroMapper.toResponseDto(libroRepository.save(libro));
     }
 
     @Override
     public void eliminarLibro(UUID id) {
+        if (!libroRepository.existsById(id)) {
+            throw new NoSuchElementException("Libro no encontrado con id: " + id);
+        }
         libroRepository.deleteById(id);
-    }
-
-    @Override
-    public Libro actualizarLibro(Libro libro) {
-        return libroRepository.save(libro);
     }
 }

@@ -38,7 +38,7 @@ public class Libro {
 
     private Date anioPublicacion;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private EstadoLibroEnum estadoLibro;
 
     public UUID getId() {
@@ -104,4 +104,5 @@ public class Libro {
     public void setEstadoLibro(EstadoLibroEnum estadoLibro) {
         this.estadoLibro = estadoLibro;
     }
+
 }
