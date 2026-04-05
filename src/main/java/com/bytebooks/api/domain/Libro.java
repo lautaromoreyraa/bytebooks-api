@@ -7,7 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.*;
+import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -36,7 +36,14 @@ public class Libro {
 
     private String editorial;
 
-    private Date anioPublicacion;
+    @Column(length = 4)
+    private String anioPublicacion;
+
+    @Column(length = 13, unique = true)
+    private String isbn;
+
+    @Column(length = 500)
+    private String portada;
 
     @Enumerated(EnumType.STRING)
     private EstadoLibroEnum estadoLibro;
@@ -89,12 +96,28 @@ public class Libro {
         this.editorial = editorial;
     }
 
-    public Date getAnioPublicacion() {
+    public String getAnioPublicacion() {
         return anioPublicacion;
     }
 
-    public void setAnioPublicacion(Date anioPublicacion) {
+    public void setAnioPublicacion(String anioPublicacion) {
         this.anioPublicacion = anioPublicacion;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
+    }
+
+    public String getPortada() {
+        return portada;
+    }
+
+    public void setPortada(String portada) {
+        this.portada = portada;
     }
 
     public EstadoLibroEnum getEstadoLibro() {

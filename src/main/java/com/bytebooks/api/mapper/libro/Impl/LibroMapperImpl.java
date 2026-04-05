@@ -25,6 +25,7 @@ public class LibroMapperImpl implements LibroMapper {
                 categoriaMapper.toResponseDto(libro.getCategoria()),
                 libro.getEditorial(),
                 libro.getAnioPublicacion(),
+                libro.getPortada(),
                 libro.getEstadoLibro()
         );
     }
