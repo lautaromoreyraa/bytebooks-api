@@ -25,6 +25,14 @@ public class Categoria {
     @Column(length = 1000)
     private String descripcion;
 
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
     public String getNombre() {
         return nombre;
     }

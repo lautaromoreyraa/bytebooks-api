@@ -2,48 +2,77 @@ package com.bytebooks.api.service.categoria.Impl;
 
 import com.bytebooks.api.domain.Categoria;
 import com.bytebooks.api.dto.categoria.CategoriaRequestDto;
+import com.bytebooks.api.dto.categoria.CategoriaResponseDto;
 import com.bytebooks.api.mapper.categoria.CategoriaMapper;
-import com.bytebooks.api.mapper.categoria.Impl.CategoriaMapperImpl;
 import com.bytebooks.api.repository.CategoriaRepository;
+import com.bytebooks.api.repository.LibroRepository;
 import com.bytebooks.api.service.categoria.CategoriaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
 public class CategoriaServiceImpl implements CategoriaService {
 
-    @Autowired
-    private CategoriaRepository categoriaRepository;
-    @Autowired
-    private CategoriaMapper categoriaMapper;
+    private final CategoriaRepository categoriaRepository;
+    private final LibroRepository libroRepository;
+    private final CategoriaMapper categoriaMapper;
 
-    public Categoria agregarCategoria(CategoriaRequestDto request) {
-
-        Categoria categoriaCreated = categoriaMapper.CategoriaRequestDtoToCategoria( request );
-
-        return categoriaRepository.save( categoriaCreated );
+    public CategoriaServiceImpl(CategoriaRepository categoriaRepository,
+                                LibroRepository libroRepository,
+                                CategoriaMapper categoriaMapper) {
+        this.categoriaRepository = categoriaRepository;
+        this.libroRepository = libroRepository;
+        this.categoriaMapper = categoriaMapper;
     }
 
     @Override
-    public Categoria getCategoriaById(UUID id) {
-        return categoriaRepository.getReferenceById(id);
+    public CategoriaResponseDto agregarCategoria(CategoriaRequestDto request) {
+        Categoria categoria = categoriaMapper.toCategoria(request);
+        return categoriaMapper.toResponseDto(categoriaRepository.save(categoria));
     }
 
     @Override
-    public List<Categoria> getAllCategorias() {
-        return categoriaRepository.findAll();
+    public CategoriaResponseDto getCategoriaById(UUID id) {
+        return categoriaMapper.toResponseDto(getCategoriaEntityById(id));
     }
 
     @Override
-    public Categoria actualizarCategoria(Categoria categoria) {
-        return categoriaRepository.save(categoria);
+    public Categoria getCategoriaEntityById(UUID id) {
+        return categoriaRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Categoria no encontrada con id: " + id));
+    }
+
+    @Override
+    public List<CategoriaResponseDto> getAllCategorias() {
+        return categoriaRepository.findAll().stream()
+                .map(categoriaMapper::toResponseDto)
+                .toList();
+    }
+
+    @Override
+    public CategoriaResponseDto actualizarCategoria(UUID id, CategoriaRequestDto request) {
+        Categoria categoria = getCategoriaEntityById(id);
+        categoria.setNombre(request.nombre());
+        categoria.setDescripcion(request.descripcion());
+        return categoriaMapper.toResponseDto(categoriaRepository.save(categoria));
+    }
+
+    @Override
+    public void verifyCategoriaHasNoBooks(Categoria categoria) {
+        if (libroRepository.existsByCategoria(categoria)) {
+            throw new IllegalStateException(
+                    "No se puede eliminar la categoria '" + categoria.getNombre() +
+                    "' porque tiene libros asociados.");
+        }
     }
 
     @Override
     public void eliminarCategoria(UUID id) {
+        Categoria categoria = getCategoriaEntityById(id);
+        verifyCategoriaHasNoBooks(categoria);
         categoriaRepository.deleteById(id);
     }
 }
