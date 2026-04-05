@@ -1,11 +1,14 @@
 package com.bytebooks.api.domain;
 
+import com.bytebooks.api.domain.Libro;
 import com.bytebooks.api.enumeration.RolEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -35,6 +38,20 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private RolEnum rol;
+
+    @Column(length = 500)
+    private String fotoPerfil;
+
+    @Column(length = 500)
+    private String descripcion;
+
+    @ManyToMany
+    @JoinTable(
+        name = "usuario_libros_guardados",
+        joinColumns = @JoinColumn(name = "usuario_id"),
+        inverseJoinColumns = @JoinColumn(name = "libro_id")
+    )
+    private List<Libro> librosGuardados = new ArrayList<>();
 
     public UUID getId() {
         return id;
@@ -82,5 +99,29 @@ public class Usuario {
 
     public void setRol(RolEnum rol) {
         this.rol = rol;
+    }
+
+    public String getFotoPerfil() {
+        return fotoPerfil;
+    }
+
+    public void setFotoPerfil(String fotoPerfil) {
+        this.fotoPerfil = fotoPerfil;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public List<Libro> getLibrosGuardados() {
+        return librosGuardados;
+    }
+
+    public void setLibrosGuardados(List<Libro> librosGuardados) {
+        this.librosGuardados = librosGuardados;
     }
 }
