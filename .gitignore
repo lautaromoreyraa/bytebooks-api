@@ -32,9 +32,13 @@ build/
 ### VS Code ###
 .vscode/
 
-.pom.xml
 *.log
 *.tmp
 *.bak
 *.swp
+.env
+asd.txt
+
+application-local.properties
+application-prod.properties
 
