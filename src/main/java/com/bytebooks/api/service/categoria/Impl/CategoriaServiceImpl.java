@@ -9,8 +9,10 @@ import com.bytebooks.api.repository.LibroRepository;
 import com.bytebooks.api.service.categoria.CategoriaService;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -46,6 +48,16 @@ public class CategoriaServiceImpl implements CategoriaService {
     }
 
     @Override
+    public Set<Categoria> getCategoriaEntitiesByIds(List<UUID> ids) {
+        Set<UUID> uniqueIds = new LinkedHashSet<>(ids);
+        List<Categoria> encontradas = categoriaRepository.findAllById(uniqueIds);
+        if (encontradas.size() != uniqueIds.size()) {
+            throw new NoSuchElementException("Una o mas categorias no fueron encontradas.");
+        }
+        return new LinkedHashSet<>(encontradas);
+    }
+
+    @Override
     public List<CategoriaResponseDto> getAllCategorias() {
         return categoriaRepository.findAll().stream()
                 .map(categoriaMapper::toResponseDto)
@@ -62,7 +74,7 @@ public class CategoriaServiceImpl implements CategoriaService {
 
     @Override
     public void verifyCategoriaHasNoBooks(Categoria categoria) {
-        if (libroRepository.existsByCategoria(categoria)) {
+        if (libroRepository.existsByCategorias(categoria)) {
             throw new IllegalStateException(
                     "No se puede eliminar la categoria '" + categoria.getNombre() +
                     "' porque tiene libros asociados.");

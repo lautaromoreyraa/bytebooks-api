@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -45,13 +46,13 @@ public class LibroServiceImpl implements LibroService {
 
     @Override
     public LibroResponseDto agregarLibro(LibroRequestDto request) {
-        Categoria categoria = categoriaService.getCategoriaEntityById(request.categoriaId());
+        Set<Categoria> categorias = categoriaService.getCategoriaEntitiesByIds(request.categoriaIds());
 
         Libro libro = new Libro();
         libro.setTitulo(request.titulo());
         libro.setAutor(request.autor());
         libro.setDescripcion(request.descripcion());
-        libro.setCategoria(categoria);
+        libro.setCategorias(categorias);
 
         return libroMapper.toResponseDto(libroRepository.save(libro));
     }
@@ -61,12 +62,12 @@ public class LibroServiceImpl implements LibroService {
         Libro libro = libroRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Libro no encontrado con id: " + id));
 
-        Categoria categoria = categoriaService.getCategoriaEntityById(request.categoriaId());
+        Set<Categoria> categorias = categoriaService.getCategoriaEntitiesByIds(request.categoriaIds());
 
         libro.setTitulo(request.titulo());
         libro.setAutor(request.autor());
         libro.setDescripcion(request.descripcion());
-        libro.setCategoria(categoria);
+        libro.setCategorias(categorias);
 
         return libroMapper.toResponseDto(libroRepository.save(libro));
     }

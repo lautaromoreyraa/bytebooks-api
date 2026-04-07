@@ -112,7 +112,7 @@ public class BookImportServiceImpl implements BookImportService {
             libro.setEditorial(truncate(cleanText(info.publisher()), MAX_EDITORIAL_LENGTH));
             libro.setAnioPublicacion(extraerAnio(info.publishedDate()));
             libro.setPortada(sanitizeThumbnail(info));
-            libro.setCategoria(categoria);
+            libro.setCategorias(new java.util.HashSet<>(java.util.Set.of(categoria)));
             libro.setEstadoLibro(EstadoLibroEnum.DISPONIBLE);
 
             try {
