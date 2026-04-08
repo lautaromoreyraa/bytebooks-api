@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public interface LibroFavoritoService {
     List<LibroResponseDto> getMisFavoritos(UUID usuarioId);
+    List<LibroResponseDto> getFavoritosDeUsuario(UUID usuarioId);
     void agregarFavorito(UUID usuarioId, UUID libroId);
     void quitarFavorito(UUID usuarioId, UUID libroId);
 }

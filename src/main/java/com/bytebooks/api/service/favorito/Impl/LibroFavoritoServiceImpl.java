@@ -32,6 +32,12 @@ public class LibroFavoritoServiceImpl implements LibroFavoritoService {
     @Override
     @Transactional(readOnly = true)
     public List<LibroResponseDto> getMisFavoritos(UUID usuarioId) {
+        return getFavoritosDeUsuario(usuarioId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LibroResponseDto> getFavoritosDeUsuario(UUID usuarioId) {
         Usuario usuario = getUsuario(usuarioId);
         return usuario.getLibrosGuardados().stream()
                 .map(libroMapper::toResponseDto)

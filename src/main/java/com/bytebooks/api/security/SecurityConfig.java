@@ -73,6 +73,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,    "/libros", "/libros/**").permitAll()
                 .requestMatchers(HttpMethod.GET,    "/categorias", "/categorias/**").permitAll()
                 .requestMatchers(HttpMethod.GET,    "/usuarios/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET,    "/usuarios/*/favoritos").permitAll()
                 // Moderador o Admin
                 .requestMatchers(HttpMethod.PUT,    "/libros/**").hasAnyRole("MODERATOR", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/libros/**").hasAnyRole("MODERATOR", "ADMIN")

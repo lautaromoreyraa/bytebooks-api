@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Repository
 public interface LibroRepository extends JpaRepository<Libro, UUID> {
-    boolean existsByCategoria(Categoria categoria);
+    boolean existsByCategorias(Categoria categoria);
 
     @Query("SELECT l.isbn FROM Libro l WHERE l.isbn IN :isbns")
     Set<String> findIsbnsByIsbnIn(@Param("isbns") List<String> isbns);
