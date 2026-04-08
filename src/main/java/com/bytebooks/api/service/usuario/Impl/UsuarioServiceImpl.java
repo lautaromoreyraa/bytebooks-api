@@ -27,7 +27,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioPerfilResponseDto actualizarPerfil(UUID userId, ActualizarPerfilRequestDto request) {
         Usuario usuario = getUsuarioEntityById(userId);
-        usuario.setFotoPerfil(request.fotoPerfil());
+        if (request.fotoPerfil() != null) {
+            usuario.setFotoPerfil(request.fotoPerfil());
+        }
         usuario.setDescripcion(request.descripcion());
         return toResponseDto(usuarioRepository.save(usuario));
     }
