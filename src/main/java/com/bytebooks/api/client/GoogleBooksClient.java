@@ -3,7 +3,9 @@ package com.bytebooks.api.client;
 import com.bytebooks.api.dto.google.GoogleBooksResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -28,6 +30,13 @@ public class GoogleBooksClient {
                     .body(GoogleBooksResponse.class);
 
             return response != null && response.items() != null ? response.items() : List.of();
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                log.warn("Cuota diaria de Google Books API agotada");
+                throw new IllegalStateException("Se alcanzó el límite diario de consultas a Google Books. Intentá de nuevo mañana.");
+            }
+            log.error("Error HTTP al consultar Google Books API: {} {}", e.getStatusCode(), e.getMessage());
+            return List.of();
         } catch (Exception e) {
             log.error("Error al consultar Google Books API: {}", e.getMessage());
             return List.of();

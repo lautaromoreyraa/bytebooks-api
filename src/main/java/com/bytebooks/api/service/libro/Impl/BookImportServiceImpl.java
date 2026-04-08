@@ -7,6 +7,7 @@ import com.bytebooks.api.dto.google.GoogleBooksResponse.IndustryIdentifier;
 import com.bytebooks.api.dto.google.GoogleBooksResponse.VolumeInfo;
 import com.bytebooks.api.dto.google.GoogleBooksResponse.VolumeItem;
 import com.bytebooks.api.dto.libro.BookImportResponseDto;
+import com.bytebooks.api.dto.libro.GoogleBookCandidateDto;
 import com.bytebooks.api.enumeration.EstadoLibroEnum;
 import com.bytebooks.api.repository.LibroRepository;
 import com.bytebooks.api.service.libro.BookImportService;
@@ -16,6 +17,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -259,5 +261,93 @@ public class BookImportServiceImpl implements BookImportService {
         String normalized = Normalizer.normalize(cleaned, Normalizer.Form.NFD);
         String withoutAccents = COMBINING_MARKS_PATTERN.matcher(normalized).replaceAll("");
         return withoutAccents.toLowerCase(Locale.ROOT);
+    }
+
+    @Override
+    public List<GoogleBookCandidateDto> previsualizarDesdeGoogle(String query) {
+        List<VolumeItem> items = googleBooksClient.buscar(query, MAX_RESULTS_GOOGLE);
+        if (items.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> candidatosIsbn = items.stream()
+                .map(this::extraerIsbn13)
+                .filter(isbn -> isbn != null && !isbn.isBlank())
+                .toList();
+
+        Set<String> isbnsExistentes = libroRepository.findIsbnsByIsbnIn(candidatosIsbn);
+        Set<String> titulosExistentes = new HashSet<>();
+        for (String titulo : libroRepository.findAllTitulos()) {
+            String tituloNormalizado = normalizeText(titulo);
+            if (!tituloNormalizado.isBlank()) {
+                titulosExistentes.add(tituloNormalizado);
+            }
+        }
+
+        Set<String> titulosEnBatch = new HashSet<>();
+        Set<String> isbnsEnBatch = new HashSet<>();
+        List<GoogleBookCandidateDto> candidatos = new ArrayList<>();
+
+        for (VolumeItem item : items) {
+            if (candidatos.size() >= TARGET_IMPORTADOS) break;
+
+            VolumeInfo info = item.volumeInfo();
+            if (info == null) continue;
+
+            String titulo = sanitizeTitle(info.title());
+            if (titulo == null) continue;
+
+            String tituloNormalizado = normalizeText(titulo);
+            String isbn = extraerIsbn13(item);
+
+            boolean isbnDuplicado = isbn != null
+                    && (!isbnsEnBatch.add(isbn) || isbnsExistentes.contains(isbn));
+            boolean tituloDuplicado = !titulosEnBatch.add(tituloNormalizado)
+                    || titulosExistentes.contains(tituloNormalizado);
+
+            if (isbnDuplicado || tituloDuplicado) continue;
+
+            candidatos.add(new GoogleBookCandidateDto(
+                    titulo,
+                    sanitizeAuthor(info.authors()),
+                    sanitizeDescription(info.description()),
+                    isbn,
+                    extraerAnio(info.publishedDate()),
+                    truncate(cleanText(info.publisher()), MAX_EDITORIAL_LENGTH),
+                    sanitizeThumbnail(info)
+            ));
+        }
+
+        return candidatos;
+    }
+
+    @Override
+    public BookImportResponseDto confirmarImportacion(List<GoogleBookCandidateDto> libros, Categoria categoria) {
+        int guardados = 0;
+        int errores = 0;
+
+        for (GoogleBookCandidateDto candidato : libros) {
+            Libro libro = new Libro();
+            libro.setIsbn(candidato.isbn());
+            libro.setTitulo(candidato.titulo());
+            libro.setAutor(candidato.autor());
+            libro.setDescripcion(candidato.descripcion());
+            libro.setEditorial(candidato.editorial());
+            libro.setAnioPublicacion(candidato.anioPublicacion());
+            libro.setPortada(candidato.portada());
+            libro.setCategorias(new java.util.HashSet<>(java.util.Set.of(categoria)));
+            libro.setEstadoLibro(EstadoLibroEnum.DISPONIBLE);
+
+            try {
+                libroRepository.saveAndFlush(libro);
+                guardados++;
+            } catch (DataIntegrityViolationException ex) {
+                errores++;
+                log.warn("No se pudo guardar libro '{}': {}", candidato.titulo(), ex.getMessage());
+            }
+        }
+
+        log.info("Importacion confirmada: {} guardados, {} errores", guardados, errores);
+        return new BookImportResponseDto("confirmar", libros.size(), guardados, 0, 0, errores);
     }
 }
