@@ -17,7 +17,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Value("${app.security.trust-proxy}")
+    @Value("${app.security.trust-proxy:false}")
     private boolean trustProxy;
 
     public AuthController(AuthService authService) {

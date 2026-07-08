@@ -27,7 +27,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(RateLimitFilter.class);
 
-    @Value("${app.security.trust-proxy}")
+    @Value("${app.security.trust-proxy:false}")
     private boolean trustProxy;
 
     private final Cache<String, Bucket> loginBuckets = Caffeine.newBuilder()
