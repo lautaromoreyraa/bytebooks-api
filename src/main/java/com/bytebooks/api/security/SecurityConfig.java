@@ -40,9 +40,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://localhost:3000"
+        cors.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://bytebooks-frontend*.vercel.app"
         ));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
