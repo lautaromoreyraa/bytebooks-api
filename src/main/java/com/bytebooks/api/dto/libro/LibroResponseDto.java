@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public record LibroResponseDto(
         UUID id,
+        String isbn,
         String titulo,
         String autor,
         String descripcion,

@@ -1,7 +1,9 @@
 package com.bytebooks.api.dto.libro;
 
+import com.bytebooks.api.enumeration.EstadoLibroEnum;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
@@ -20,4 +22,15 @@ public record LibroRequestDto(
         String descripcion,
 
         @NotEmpty(message = "Al menos una categoria es obligatoria")
-        List<UUID> categoriaIds) { }
+        List<UUID> categoriaIds,
+
+        @Size(max = 255, message = "La editorial no puede superar los 255 caracteres")
+        String editorial,
+
+        @Pattern(regexp = "^$|^\\d{4}$", message = "El anio de publicacion debe tener 4 digitos")
+        String anioPublicacion,
+
+        @Size(max = 500, message = "La url de la portada no puede superar los 500 caracteres")
+        String portada,
+
+        EstadoLibroEnum estadoLibro) { }
