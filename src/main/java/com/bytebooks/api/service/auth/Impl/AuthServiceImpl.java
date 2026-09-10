@@ -7,6 +7,7 @@ import com.bytebooks.api.dto.auth.RegisterRequestDto;
 import com.bytebooks.api.enumeration.RolEnum;
 import com.bytebooks.api.repository.UsuarioRepository;
 import com.bytebooks.api.security.LoginAttemptService;
+import com.bytebooks.api.exception.CredencialesInvalidasException;
 import com.bytebooks.api.security.TokenBlacklistService;
 import com.bytebooks.api.security.UsuarioPrincipal;
 import com.bytebooks.api.security.jwt.JwtUtil;
@@ -91,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (BadCredentialsException | DisabledException | LockedException e) {
             loginAttemptService.loginFailed(clientIp);
             log.warn("Login fallido - ip={}, razon={}", clientIp, e.getClass().getSimpleName());
-            throw new IllegalArgumentException("Credenciales invalidas");
+            throw new CredencialesInvalidasException("Credenciales invalidas");
         }
     }
 

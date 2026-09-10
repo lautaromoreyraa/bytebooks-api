@@ -1,6 +1,7 @@
 package com.bytebooks.api.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -46,6 +47,31 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse(HttpStatus.CONFLICT.value(),
                         "El dato que intentas guardar ya existe."));
+    }
+
+    /**
+     * Credenciales que no coinciden: 401, no 500. Es el camino de error mas
+     * transitado de la aplicacion y estaba cayendo en el handler generico.
+     */
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    public ResponseEntity<ErrorResponse> handleCredenciales(CredencialesInvalidasException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()));
+    }
+
+    /**
+     * Los permisos que se verifican dentro de un service —quien puede borrar una
+     * resena ajena, por ejemplo— lanzan AccessDeniedException ya adentro del
+     * controller. Este @RestControllerAdvice corre antes que el
+     * ExceptionTranslationFilter de Spring Security, asi que sin este handler la
+     * atrapaba el generico y una denegacion correcta salia como 500.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccesoDenegado(AccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
