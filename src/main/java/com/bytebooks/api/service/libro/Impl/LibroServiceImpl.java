@@ -37,7 +37,7 @@ public class LibroServiceImpl implements LibroService {
 
     @Override
     public LibroResponseDto getLibroById(UUID id) {
-        Libro libro = libroRepository.findById(id)
+        Libro libro = libroRepository.findByIdConCategorias(id)
                 .orElseThrow(() -> new NoSuchElementException("Libro no encontrado con id: " + id));
 
         if (!visibilidad.esVisible(libro)) {
@@ -47,10 +47,18 @@ public class LibroServiceImpl implements LibroService {
         return libroMapper.toResponseDto(libro);
     }
 
+    /**
+     * Quien puede gestionar ve todo; el resto recibe el catalogo ya filtrado por
+     * la base. Antes se traia la tabla entera y se descartaban los ocultos en
+     * memoria, que cuesta lo mismo tenga el catalogo diez libros o diez mil.
+     */
     @Override
     public List<LibroResponseDto> getAllLibros() {
-        return libroRepository.findAll().stream()
-                .filter(visibilidad::esVisible)
+        List<Libro> libros = visibilidad.puedeGestionar()
+                ? libroRepository.findAllConCategorias()
+                : libroRepository.findVisiblesConCategorias(EstadoLibroEnum.OCULTO);
+
+        return libros.stream()
                 .map(libroMapper::toResponseDto)
                 .toList();
     }
@@ -69,7 +77,7 @@ public class LibroServiceImpl implements LibroService {
 
     @Override
     public LibroResponseDto actualizarLibro(UUID id, LibroRequestDto request) {
-        Libro libro = libroRepository.findById(id)
+        Libro libro = libroRepository.findByIdConCategorias(id)
                 .orElseThrow(() -> new NoSuchElementException("Libro no encontrado con id: " + id));
 
         verificarTituloLibre(request.titulo(), id);

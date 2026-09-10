@@ -5,6 +5,7 @@ import com.bytebooks.api.domain.Resena;
 import com.bytebooks.api.domain.Usuario;
 import com.bytebooks.api.dto.resena.ResenaRequestDto;
 import com.bytebooks.api.dto.resena.ResenaResponseDto;
+import com.bytebooks.api.dto.resena.ResumenDeResenasDto;
 import com.bytebooks.api.enumeration.RolEnum;
 import com.bytebooks.api.repository.LibroRepository;
 import com.bytebooks.api.repository.ResenaRepository;
@@ -39,6 +40,18 @@ public class ResenaServiceImpl implements ResenaService {
     @Override
     public Page<ResenaResponseDto> getResenasByLibro(UUID libroId, Pageable pageable) {
         return resenaRepository.findByLibroId(libroId, pageable).map(this::toResponseDto);
+    }
+
+    /**
+     * El promedio se redondea a un decimal porque es lo que se muestra: un
+     * 4.333333333333333 en el JSON solo obliga a cada cliente a recortarlo.
+     */
+    @Override
+    public ResumenDeResenasDto getResumenByLibro(UUID libroId) {
+        Double promedio = resenaRepository.promedioDePuntuacion(libroId);
+        return new ResumenDeResenasDto(
+                promedio == null ? null : Math.round(promedio * 10) / 10.0,
+                resenaRepository.countByLibroId(libroId));
     }
 
     @Override
