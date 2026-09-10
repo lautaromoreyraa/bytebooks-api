@@ -208,9 +208,6 @@ class AuthControllerIntegrationTest extends PruebaDeIntegracion {
     @Test
     @DisplayName("una contrasena incorrecta responde 401, no 500")
     void contrasenaIncorrectaDa401() throws Exception {
-        // ROJO A PROPOSITO — punto 22 de REVISION.md. AuthServiceImpl lanza
-        // IllegalArgumentException y GlobalExceptionHandler no la contempla, asi
-        // que cae en el generico. Es el camino de error mas transitado de la app.
         registrar("camila@ejemplo.test", "10.0.0.9");
 
         mockMvc.perform(post("/auth/login")

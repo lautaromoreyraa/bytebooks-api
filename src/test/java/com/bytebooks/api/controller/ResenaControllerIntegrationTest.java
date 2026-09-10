@@ -193,10 +193,6 @@ class ResenaControllerIntegrationTest extends PruebaDeIntegracion {
     @Test
     @DisplayName("un usuario comun no puede borrar la resena de otro")
     void noSePuedeBorrarLaAjena() throws Exception {
-        // ROJO A PROPOSITO — punto 23 de REVISION.md. El borrado SI se rechaza,
-        // pero con 500: ResenaServiceImpl lanza AccessDeniedException y el
-        // @RestControllerAdvice la atrapa en su handler generico de Exception
-        // antes de que Spring Security pueda traducirla a 403.
         UUID resena = publicar(autora, "Mia", 5);
         Usuario intrusa = usuarioRepository.save(FabricaDeUsuarios.con(RolEnum.ROLE_USER));
 
