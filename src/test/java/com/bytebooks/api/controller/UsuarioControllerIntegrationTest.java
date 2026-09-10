@@ -53,6 +53,17 @@ class UsuarioControllerIntegrationTest extends PruebaDeIntegracion {
         libroRepository.deleteAll();
         categoriaRepository.deleteAll();
 
+        /*
+         * El flush no es decorativo. Esta clase es @Transactional, asi que nada
+         * llega a la base hasta que algo lo obligue, y al vaciar la sesion
+         * Hibernate manda primero los INSERT y despues los DELETE. Las clases
+         * que no son transaccionales dejan su propia categoria "Narrativa"
+         * cargada, y el nombre es UNIQUE: sin este flush, el insert de abajo
+         * choca contra una fila que el deleteAll todavia no borro y la peticion
+         * del test responde 409.
+         */
+        categoriaRepository.flush();
+
         categoria = new Categoria();
         categoria.setNombre("Narrativa");
         categoria = categoriaRepository.save(categoria);
