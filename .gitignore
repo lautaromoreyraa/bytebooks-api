@@ -42,3 +42,28 @@ asd.txt
 application-local.properties
 application-prod.properties
 
+# ===========================
+# Volcados de base de datos
+# ===========================
+# Un mysqldump del entorno de trabajo trae filas de la tabla usuario: emails
+# reales y hashes de contrasena. Este repo es publico, y una vez en el historial
+# eso se clona, se forkea y se indexa. La semilla del proyecto, si hace falta,
+# se genera desde una migracion, no se vuelca.
+*.sql
+
+# Las migraciones de Flyway si se versionan: son el esquema, no un volcado. Sin
+# esta excepcion, el dia que entre Flyway sus archivos quedarian ignorados en
+# silencio y el esquema no viajaria con el repo.
+!src/main/resources/db/migration/*.sql
+
+# ===========================
+# Notas de trabajo (no se versionan)
+# ===========================
+REVISION.md
+handoff.md
+CLAUDE.md
+AGENTS.md
+MEMORY.md
+.claude/
+.cursorrules
+!README.md
