@@ -73,6 +73,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,    "/libros", "/libros/**").permitAll()
                 .requestMatchers(HttpMethod.GET,    "/categorias", "/categorias/**").permitAll()
                 .requestMatchers(HttpMethod.GET,    "/usuarios/{id}").permitAll()
+                // Antes que la regla de abajo: su comodin tambien matchea "me",
+                // y esa peticion sin token llegaba al controller con el
+                // principal en null y salia como 500 en vez de 401.
+                .requestMatchers(HttpMethod.GET,    "/usuarios/me/favoritos").authenticated()
                 .requestMatchers(HttpMethod.GET,    "/usuarios/*/favoritos").permitAll()
                 // Moderador o Admin
                 .requestMatchers(HttpMethod.PUT,    "/libros/**").hasAnyRole("MODERATOR", "ADMIN")

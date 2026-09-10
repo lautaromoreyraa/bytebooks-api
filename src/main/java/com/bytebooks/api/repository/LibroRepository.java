@@ -15,6 +15,11 @@ import java.util.UUID;
 public interface LibroRepository extends JpaRepository<Libro, UUID> {
     boolean existsByCategorias(Categoria categoria);
 
+    boolean existsByTitulo(String titulo);
+
+    /** Para editar: el titulo puede repetirse consigo mismo, con nadie mas. */
+    boolean existsByTituloAndIdNot(String titulo, UUID id);
+
     @Query("SELECT l.isbn FROM Libro l WHERE l.isbn IN :isbns")
     Set<String> findIsbnsByIsbnIn(@Param("isbns") List<String> isbns);
 

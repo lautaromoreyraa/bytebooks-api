@@ -27,6 +27,7 @@ import java.util.UUID;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -182,10 +183,8 @@ class LibroControllerIntegrationTest extends PruebaDeIntegracion {
     }
 
     @Test
-    @DisplayName("un titulo repetido responde 409, no 500")
+    @DisplayName("un titulo repetido responde 409 y dice cual es")
     void tituloRepetidoDa409() throws Exception {
-        // ROJO A PROPOSITO — punto 7 de REVISION.md. Hoy la violacion de la
-        // restriccion UNIQUE cae en el handler generico y sale como 500.
         guardar(FabricaDeLibros.disponible("Titulo repetido"));
 
         String cuerpo = objectMapper.writeValueAsString(Map.of(
@@ -194,6 +193,44 @@ class LibroControllerIntegrationTest extends PruebaDeIntegracion {
                 "categoriaIds", List.of(categoria.getId())));
 
         mockMvc.perform(post("/libros")
+                        .with(comoRol(RolEnum.ROLE_ADMIN))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value(
+                        org.hamcrest.Matchers.containsString("Titulo repetido")));
+    }
+
+    @Test
+    @DisplayName("editar un libro conservando su propio titulo no es conflicto")
+    void editarConservandoElTituloNoEsConflicto() throws Exception {
+        Libro libro = guardar(FabricaDeLibros.disponible("Titulo propio"));
+
+        String cuerpo = objectMapper.writeValueAsString(Map.of(
+                "titulo", "Titulo propio",
+                "autor", "Autora corregida",
+                "categoriaIds", List.of(categoria.getId())));
+
+        mockMvc.perform(put("/libros/{id}", libro.getId())
+                        .with(comoRol(RolEnum.ROLE_ADMIN))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.autor").value("Autora corregida"));
+    }
+
+    @Test
+    @DisplayName("editar tomando el titulo de otro libro si es conflicto")
+    void editarTomandoElTituloDeOtroEsConflicto() throws Exception {
+        guardar(FabricaDeLibros.disponible("Titulo ajeno"));
+        Libro propio = guardar(FabricaDeLibros.disponible("Titulo propio"));
+
+        String cuerpo = objectMapper.writeValueAsString(Map.of(
+                "titulo", "Titulo ajeno",
+                "autor", "Autora",
+                "categoriaIds", List.of(categoria.getId())));
+
+        mockMvc.perform(put("/libros/{id}", propio.getId())
                         .with(comoRol(RolEnum.ROLE_ADMIN))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(cuerpo))

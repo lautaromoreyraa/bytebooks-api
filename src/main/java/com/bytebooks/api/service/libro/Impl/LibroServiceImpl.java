@@ -5,13 +5,11 @@ import com.bytebooks.api.domain.Libro;
 import com.bytebooks.api.dto.libro.LibroRequestDto;
 import com.bytebooks.api.dto.libro.LibroResponseDto;
 import com.bytebooks.api.enumeration.EstadoLibroEnum;
-import com.bytebooks.api.enumeration.RolEnum;
 import com.bytebooks.api.mapper.libro.LibroMapper;
 import com.bytebooks.api.repository.LibroRepository;
 import com.bytebooks.api.service.categoria.CategoriaService;
 import com.bytebooks.api.service.libro.LibroService;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.bytebooks.api.service.libro.VisibilidadDeLibros;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,13 +23,16 @@ public class LibroServiceImpl implements LibroService {
     private final LibroRepository libroRepository;
     private final CategoriaService categoriaService;
     private final LibroMapper libroMapper;
+    private final VisibilidadDeLibros visibilidad;
 
     public LibroServiceImpl(LibroRepository libroRepository,
                             CategoriaService categoriaService,
-                            LibroMapper libroMapper) {
+                            LibroMapper libroMapper,
+                            VisibilidadDeLibros visibilidad) {
         this.libroRepository = libroRepository;
         this.categoriaService = categoriaService;
         this.libroMapper = libroMapper;
+        this.visibilidad = visibilidad;
     }
 
     @Override
@@ -39,7 +40,7 @@ public class LibroServiceImpl implements LibroService {
         Libro libro = libroRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Libro no encontrado con id: " + id));
 
-        if (!esVisiblePara(libro)) {
+        if (!visibilidad.esVisible(libro)) {
             throw new NoSuchElementException("Libro no encontrado con id: " + id);
         }
 
@@ -49,35 +50,15 @@ public class LibroServiceImpl implements LibroService {
     @Override
     public List<LibroResponseDto> getAllLibros() {
         return libroRepository.findAll().stream()
-                .filter(this::esVisiblePara)
+                .filter(visibilidad::esVisible)
                 .map(libroMapper::toResponseDto)
                 .toList();
     }
 
-    /**
-     * Un libro OCULTO sólo lo ven quienes pueden gestionarlo: si no, el estado
-     * no ocultaba nada y el catálogo público los listaba igual.
-     * Para el resto se comporta como si no existiera, en lugar de responder 403,
-     * para no confirmar que el id corresponde a un libro real.
-     */
-    private boolean esVisiblePara(Libro libro) {
-        return libro.getEstadoLibro() != EstadoLibroEnum.OCULTO || puedeGestionarLibros();
-    }
-
-    private boolean puedeGestionarLibros() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return false;
-        }
-
-        return authentication.getAuthorities().stream()
-                .anyMatch(authority ->
-                        RolEnum.ROLE_ADMIN.name().equals(authority.getAuthority())
-                                || RolEnum.ROLE_MODERATOR.name().equals(authority.getAuthority()));
-    }
-
     @Override
     public LibroResponseDto agregarLibro(LibroRequestDto request) {
+        verificarTituloLibre(request.titulo(), null);
+
         Set<Categoria> categorias = categoriaService.getCategoriaEntitiesByIds(request.categoriaIds());
 
         Libro libro = new Libro();
@@ -91,11 +72,31 @@ public class LibroServiceImpl implements LibroService {
         Libro libro = libroRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Libro no encontrado con id: " + id));
 
+        verificarTituloLibre(request.titulo(), id);
+
         Set<Categoria> categorias = categoriaService.getCategoriaEntitiesByIds(request.categoriaIds());
 
         aplicar(libro, request, categorias);
 
         return libroMapper.toResponseDto(libroRepository.save(libro));
+    }
+
+    /**
+     * El titulo es UNIQUE en la base. Sin este chequeo, cargar un libro repetido
+     * llegaba hasta el insert y volvia como error de integridad, sin decir cual
+     * era el problema. IllegalStateException ya esta mapeada a 409.
+     *
+     * Queda igual el handler de integridad: entre este chequeo y el insert hay
+     * una ventana en la que otra peticion puede tomar el mismo titulo.
+     */
+    private void verificarTituloLibre(String titulo, UUID idQueSeEdita) {
+        boolean repetido = idQueSeEdita == null
+                ? libroRepository.existsByTitulo(titulo)
+                : libroRepository.existsByTituloAndIdNot(titulo, idQueSeEdita);
+
+        if (repetido) {
+            throw new IllegalStateException("Ya existe un libro con el titulo: " + titulo);
+        }
     }
 
     /**
@@ -109,15 +110,19 @@ public class LibroServiceImpl implements LibroService {
         libro.setAutor(request.autor());
         libro.setDescripcion(request.descripcion());
         libro.setCategorias(categorias);
-        libro.setEditorial(request.editorial());
+        libro.setEditorial(normalizar(request.editorial()));
         libro.setAnioPublicacion(normalizar(request.anioPublicacion()));
-        libro.setPortada(request.portada());
+        libro.setPortada(normalizar(request.portada()));
         libro.setEstadoLibro(request.estadoLibro() != null
                 ? request.estadoLibro()
                 : EstadoLibroEnum.DISPONIBLE);
     }
 
-    /** La columna admite 4 caracteres: un string vacio se guarda como null. */
+    /**
+     * Una cadena vacia se guarda como null. Un "" en la base obliga a que cada
+     * consumidor distinga despues entre "sin dato" y "dato vacio", que son lo
+     * mismo para todos estos campos.
+     */
     private String normalizar(String valor) {
         return (valor == null || valor.isBlank()) ? null : valor;
     }

@@ -11,6 +11,7 @@ import com.bytebooks.api.mapper.libro.LibroMapper;
 import com.bytebooks.api.repository.LibroRepository;
 import com.bytebooks.api.service.categoria.CategoriaService;
 import com.bytebooks.api.service.libro.Impl.LibroServiceImpl;
+import com.bytebooks.api.service.libro.Impl.VisibilidadDeLibrosImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -56,6 +58,11 @@ class LibroServiceImplTest {
 
     @Mock
     private LibroMapper libroMapper;
+
+    // La regla de visibilidad va con la implementacion real, no mockeada: lo que
+    // se prueba aca es justamente como responde ante cada rol.
+    @Spy
+    private VisibilidadDeLibros visibilidad = new VisibilidadDeLibrosImpl();
 
     @InjectMocks
     private LibroServiceImpl servicio;
@@ -243,8 +250,6 @@ class LibroServiceImplTest {
         @Test
         @DisplayName("una editorial y una portada vacias tambien se guardan como null")
         void editorialYPortadaVaciasSeGuardanNull() {
-            // ROJO A PROPOSITO — punto 19 de REVISION.md. Hoy normalizar() se
-            // aplica solo a anioPublicacion, asi que estos dos quedan como "".
             prepararGuardado();
 
             servicio.agregarLibro(pedido("", "1967", "", null));

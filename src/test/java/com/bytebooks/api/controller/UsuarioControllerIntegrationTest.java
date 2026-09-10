@@ -67,9 +67,6 @@ class UsuarioControllerIntegrationTest extends PruebaDeIntegracion {
     @Test
     @DisplayName("los favoritos publicos no exponen los libros ocultos")
     void favoritosPublicosSinOcultos() throws Exception {
-        // ROJO A PROPOSITO — punto 1 de REVISION.md. El filtro de visibilidad
-        // vive dentro de LibroServiceImpl y LibroFavoritoServiceImpl no lo usa,
-        // asi que hoy este endpoint publica el libro oculto entero.
         Libro visible = guardar(FabricaDeLibros.disponible("A la vista"));
         Libro oculto = guardar(FabricaDeLibros.oculto("Fuera de vista"));
 
