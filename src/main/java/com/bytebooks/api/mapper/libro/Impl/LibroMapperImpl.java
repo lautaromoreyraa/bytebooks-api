@@ -29,6 +29,7 @@ public class LibroMapperImpl implements LibroMapper {
 
         return new LibroResponseDto(
                 libro.getId(),
+                libro.getIsbn(),
                 libro.getTitulo(),
                 libro.getAutor(),
                 libro.getDescripcion(),

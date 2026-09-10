@@ -7,6 +7,7 @@ import com.bytebooks.api.mapper.libro.LibroMapper;
 import com.bytebooks.api.repository.LibroRepository;
 import com.bytebooks.api.repository.UsuarioRepository;
 import com.bytebooks.api.service.favorito.LibroFavoritoService;
+import com.bytebooks.api.service.libro.VisibilidadDeLibros;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +21,16 @@ public class LibroFavoritoServiceImpl implements LibroFavoritoService {
     private final UsuarioRepository usuarioRepository;
     private final LibroRepository libroRepository;
     private final LibroMapper libroMapper;
+    private final VisibilidadDeLibros visibilidad;
 
     public LibroFavoritoServiceImpl(UsuarioRepository usuarioRepository,
                                     LibroRepository libroRepository,
-                                    LibroMapper libroMapper) {
+                                    LibroMapper libroMapper,
+                                    VisibilidadDeLibros visibilidad) {
         this.usuarioRepository = usuarioRepository;
         this.libroRepository   = libroRepository;
         this.libroMapper       = libroMapper;
+        this.visibilidad       = visibilidad;
     }
 
     @Override
@@ -39,7 +43,10 @@ public class LibroFavoritoServiceImpl implements LibroFavoritoService {
     @Transactional(readOnly = true)
     public List<LibroResponseDto> getFavoritosDeUsuario(UUID usuarioId) {
         Usuario usuario = getUsuario(usuarioId);
+        // El perfil es publico: sin este filtro, un libro oculto que alguien
+        // tenga guardado se publica entero a cualquier visitante.
         return usuario.getLibrosGuardados().stream()
+                .filter(visibilidad::esVisible)
                 .map(libroMapper::toResponseDto)
                 .toList();
     }
