@@ -3,6 +3,7 @@ package com.bytebooks.api.controller;
 import com.bytebooks.api.config.PruebaDeIntegracion;
 import com.bytebooks.api.domain.Categoria;
 import com.bytebooks.api.domain.Libro;
+import com.bytebooks.api.domain.Resena;
 import com.bytebooks.api.domain.Usuario;
 import com.bytebooks.api.enumeration.RolEnum;
 import com.bytebooks.api.fixture.FabricaDeLibros;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -208,6 +210,69 @@ class ResenaControllerIntegrationTest extends PruebaDeIntegracion {
 
         mockMvc.perform(delete("/resenas/{id}", resena).with(como(moderador)))
                 .andExpect(status().isNoContent());
+    }
+
+    /**
+     * Fija la fecha a mano en vez de confiar en el {@code new Date()} del
+     * service: dos resenas publicadas seguidas pueden caer en el mismo instante
+     * y el orden dejaria de estar definido, que es justo lo que se prueba.
+     */
+    private void fecharEn(UUID resenaId, long epochMillis) {
+        Resena resena = resenaRepository.findById(resenaId).orElseThrow();
+        resena.setFechaResena(new Date(epochMillis));
+        resenaRepository.save(resena);
+    }
+
+    @Test
+    @DisplayName("el listado empieza por la resena mas nueva")
+    void listadoDeLaMasNuevaALaMasVieja() throws Exception {
+        UUID vieja = publicar(autora, "La primera", 3);
+        UUID nueva = publicar(usuarioRepository.save(FabricaDeUsuarios.con(RolEnum.ROLE_USER)),
+                "La ultima", 5);
+
+        fecharEn(vieja, 1_000_000_000_000L);
+        fecharEn(nueva, 1_700_000_000_000L);
+
+        mockMvc.perform(get("/libros/{id}/resenas", libro.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(nueva.toString()))
+                .andExpect(jsonPath("$.content[1].id").value(vieja.toString()));
+    }
+
+    @Test
+    @DisplayName("el resumen promedia todas las resenas, no solo la primera pagina")
+    void resumenSobreLaTablaEntera() throws Exception {
+        // 11 resenas: mas que el tamano de pagina, para que un promedio calculado
+        // sobre la primera pagina de otro numero que el correcto.
+        int[] puntuaciones = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1};
+        for (int puntuacion : puntuaciones) {
+            publicar(usuarioRepository.save(FabricaDeUsuarios.con(RolEnum.ROLE_USER)),
+                    "Comentario", puntuacion);
+        }
+
+        mockMvc.perform(get("/libros/{id}/resenas/resumen", libro.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(11))
+                .andExpect(jsonPath("$.promedio").value(4.6));
+    }
+
+    @Test
+    @DisplayName("un libro sin resenas no inventa un promedio de cero")
+    void resumenSinResenas() throws Exception {
+        mockMvc.perform(get("/libros/{id}/resenas/resumen", libro.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(0))
+                .andExpect(jsonPath("$.promedio").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("el resumen es publico")
+    void resumenPublico() throws Exception {
+        publicar(autora, "Una", 4);
+
+        mockMvc.perform(get("/libros/{id}/resenas/resumen", libro.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.promedio").value(4.0));
     }
 
     @Test

@@ -42,10 +42,15 @@ public class LibroFavoritoServiceImpl implements LibroFavoritoService {
     @Override
     @Transactional(readOnly = true)
     public List<LibroResponseDto> getFavoritosDeUsuario(UUID usuarioId) {
-        Usuario usuario = getUsuario(usuarioId);
-        // El perfil es publico: sin este filtro, un libro oculto que alguien
-        // tenga guardado se publica entero a cualquier visitante.
-        return usuario.getLibrosGuardados().stream()
+        // El perfil es publico y el usuario puede no existir: eso responde 404,
+        // no una lista vacia.
+        if (!usuarioRepository.existsById(usuarioId)) {
+            throw new NoSuchElementException("Usuario no encontrado");
+        }
+
+        // Sin este filtro, un libro oculto que alguien tenga guardado se publica
+        // entero a cualquier visitante.
+        return libroRepository.findGuardadosPorUsuario(usuarioId).stream()
                 .filter(visibilidad::esVisible)
                 .map(libroMapper::toResponseDto)
                 .toList();
@@ -60,6 +65,13 @@ public class LibroFavoritoServiceImpl implements LibroFavoritoService {
         }
         Libro libro = libroRepository.findById(libroId)
                 .orElseThrow(() -> new NoSuchElementException("Libro no encontrado"));
+
+        // Un libro oculto no existe para quien no puede gestionarlo, y guardarlo
+        // en favoritos es otra forma de alcanzarlo: la ficha ya responde 404.
+        if (!visibilidad.esVisible(libro)) {
+            throw new NoSuchElementException("Libro no encontrado");
+        }
+
         usuario.getLibrosGuardados().add(libro);
         usuarioRepository.save(usuario);
     }
