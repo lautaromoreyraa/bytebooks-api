@@ -102,39 +102,48 @@ class LibroServiceImplTest {
     @DisplayName("Visibilidad de los libros ocultos")
     class Visibilidad {
 
+        /*
+         * El filtro por estado dejo de estar en memoria y pasa a la consulta,
+         * asi que lo que se prueba aca es que el service pida la consulta
+         * correcta segun quien mire. Que la consulta filtre de verdad lo cubre
+         * LibroControllerIntegrationTest contra una base real.
+         */
+
         @Test
-        @DisplayName("el catalogo publico no incluye los ocultos")
+        @DisplayName("el catalogo publico se pide ya filtrado a la base")
         void catalogoPublicoSinOcultos() {
             dejarSinAutenticar();
             mapearPorTitulo();
-            when(libroRepository.findAll()).thenReturn(List.of(
-                    FabricaDeLibros.disponible("Visible"),
-                    FabricaDeLibros.oculto("Escondido")));
+            when(libroRepository.findVisiblesConCategorias(EstadoLibroEnum.OCULTO))
+                    .thenReturn(List.of(FabricaDeLibros.disponible("Visible")));
 
             List<LibroResponseDto> resultado = servicio.getAllLibros();
 
             assertThat(resultado).extracting(LibroResponseDto::titulo)
                     .containsExactly("Visible");
+            org.mockito.Mockito.verify(libroRepository, org.mockito.Mockito.never())
+                    .findAllConCategorias();
         }
 
         @Test
-        @DisplayName("un usuario comun tampoco ve los ocultos")
+        @DisplayName("a un usuario comun se le pide la misma consulta filtrada")
         void usuarioComunSinOcultos() {
             autenticarComo(RolEnum.ROLE_USER);
             mapearPorTitulo();
-            when(libroRepository.findAll()).thenReturn(List.of(
-                    FabricaDeLibros.disponible("Visible"),
-                    FabricaDeLibros.oculto("Escondido")));
+            when(libroRepository.findVisiblesConCategorias(EstadoLibroEnum.OCULTO))
+                    .thenReturn(List.of(FabricaDeLibros.disponible("Visible")));
 
             assertThat(servicio.getAllLibros()).extracting(LibroResponseDto::titulo)
                     .containsExactly("Visible");
+            org.mockito.Mockito.verify(libroRepository, org.mockito.Mockito.never())
+                    .findAllConCategorias();
         }
 
         @Test
-        @DisplayName("admin y moderador si los ven, porque necesitan editarlos")
+        @DisplayName("admin y moderador piden el catalogo entero, porque necesitan editarlos")
         void gestoresVenLosOcultos() {
             mapearPorTitulo();
-            when(libroRepository.findAll()).thenReturn(List.of(
+            when(libroRepository.findAllConCategorias()).thenReturn(List.of(
                     FabricaDeLibros.disponible("Visible"),
                     FabricaDeLibros.oculto("Escondido")));
 
@@ -145,6 +154,9 @@ class LibroServiceImplTest {
                         .extracting(LibroResponseDto::titulo)
                         .containsExactlyInAnyOrder("Visible", "Escondido");
             }
+
+            org.mockito.Mockito.verify(libroRepository, org.mockito.Mockito.never())
+                    .findVisiblesConCategorias(org.mockito.ArgumentMatchers.any());
         }
 
         @Test
@@ -152,7 +164,7 @@ class LibroServiceImplTest {
         void ocultoPorIdSeComportaComoInexistente() {
             dejarSinAutenticar();
             Libro oculto = FabricaDeLibros.oculto("Escondido");
-            when(libroRepository.findById(oculto.getId())).thenReturn(Optional.of(oculto));
+            when(libroRepository.findByIdConCategorias(oculto.getId())).thenReturn(Optional.of(oculto));
 
             assertThatThrownBy(() -> servicio.getLibroById(oculto.getId()))
                     .isInstanceOf(NoSuchElementException.class)
@@ -165,7 +177,7 @@ class LibroServiceImplTest {
             autenticarComo(RolEnum.ROLE_MODERATOR);
             mapearPorTitulo();
             Libro oculto = FabricaDeLibros.oculto("Escondido");
-            when(libroRepository.findById(oculto.getId())).thenReturn(Optional.of(oculto));
+            when(libroRepository.findByIdConCategorias(oculto.getId())).thenReturn(Optional.of(oculto));
 
             assertThat(servicio.getLibroById(oculto.getId()).titulo()).isEqualTo("Escondido");
         }
@@ -222,7 +234,7 @@ class LibroServiceImplTest {
         @DisplayName("al editar tambien se guardan, no solo al crear")
         void alEditarTambienSeGuardan() {
             Libro existente = FabricaDeLibros.disponible("Titulo viejo");
-            when(libroRepository.findById(existente.getId())).thenReturn(Optional.of(existente));
+            when(libroRepository.findByIdConCategorias(existente.getId())).thenReturn(Optional.of(existente));
             prepararGuardado();
 
             servicio.actualizarLibro(existente.getId(),

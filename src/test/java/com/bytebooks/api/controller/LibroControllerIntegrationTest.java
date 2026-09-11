@@ -84,6 +84,22 @@ class LibroControllerIntegrationTest extends PruebaDeIntegracion {
     }
 
     @Test
+    @DisplayName("un libro sin estado sigue estando en el catalogo publico")
+    void libroSinEstadoSigueVisible() throws Exception {
+        // El filtro por estado paso de la memoria a la consulta, y en SQL
+        // "null <> OCULTO" no es verdadero: sin contemplarlo, los libros
+        // cargados antes de que existiera el estado desaparecian del catalogo.
+        Libro sinEstado = FabricaDeLibros.disponible("Cargado antes del estado");
+        sinEstado.setEstadoLibro(null);
+        guardar(sinEstado);
+
+        mockMvc.perform(get("/libros"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].titulo").value("Cargado antes del estado"));
+    }
+
+    @Test
     @DisplayName("el catalogo publico no lista los libros ocultos")
     void catalogoPublicoSinOcultos() throws Exception {
         guardar(FabricaDeLibros.disponible("A la vista"));
