@@ -54,4 +54,10 @@ EXPOSE 8080
 # G1 mantiene, que en un contenedor de un solo core no compensan, y
 # TieredStopAtLevel=1 deja sólo el compilador rápido, que ocupa menos memoria y
 # alcanza para el tráfico de este sitio.
-ENTRYPOINT ["java", "-Xmx256m", "-Xss512k", "-XX:MaxMetaspaceSize=128m", "-XX:ReservedCodeCacheSize=64m", "-XX:MaxDirectMemorySize=64m", "-XX:+UseSerialGC", "-XX:TieredStopAtLevel=1", "-jar", "/app/app.jar"]
+#
+# Los flags van en JAVA_TOOL_OPTIONS y no en el ENTRYPOINT: un flag escrito en
+# la línea de comando le gana a la variable, y así el hosting no podría
+# ajustarlos sin un deploy nuevo. Este valor es el piso cuando nadie define la
+# variable; en Railway la define el perfil de recursos del proyecto.
+ENV JAVA_TOOL_OPTIONS="-Xmx256m -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=64m -XX:TieredStopAtLevel=1 -Xss512k -XX:MaxDirectMemorySize=64m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
