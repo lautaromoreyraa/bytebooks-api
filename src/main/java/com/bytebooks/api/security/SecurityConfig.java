@@ -42,7 +42,8 @@ public class SecurityConfig {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
-                "https://bytebooks-frontend*.vercel.app"
+                "https://bytebooks-frontend*.vercel.app",
+                "https://bytebooks.lautaromoreyra.dev"
         ));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
