@@ -1,0 +1,37 @@
+import { defineRailway, github, project, service } from "railway/iac";
+
+// Configuracion del servicio bytebooks-api en Railway. Railway no lee este archivo
+// al desplegar: se aplica a mano con `railway config plan` y
+// `railway config apply`, y queda guardada en el servicio.
+//
+// Administra solo este servicio (partial): la MySQL compartida del proyecto
+// demos, las otras APIs, los dominios y las variables siguen en el panel.
+export const partial = "bytebooks-api";
+
+export default defineRailway(() => {
+  const api = service("bytebooks-api", {
+    // Lo que no se declara se resetea al aplicar: sin la fuente, el servicio
+    // se desconectaria del repo y dejarian de salir los deploys de main.
+    source: github("lautaromoreyraa/bytebooks-api", { branch: "main", checkSuites: false }),
+    // Explicito: el servicio tiene guardado RAILPACK y, sin esto, el proximo
+    // deploy volveria a la autodeteccion en lugar de la imagen del Dockerfile.
+    build: { builder: "DOCKERFILE", dockerfilePath: "Dockerfile" },
+    // La sonda de Actuator, sin detalles. Railway no da por bueno un deploy
+    // hasta que responde UP.
+    healthcheck: "/actuator/health",
+    healthcheckTimeout: 180,
+    deploy: {
+      // La politica ya es ON_FAILURE por defecto (Railway la guarda vacia);
+      // solo se acota la cantidad de reintentos.
+      restartPolicyMaxRetries: 3,
+      // El techo del contenedor; la JVM se ajusta adentro con el perfil de recursos.
+      limitOverride: { containers: { cpu: 0.5, memoryBytes: 500000000 } },
+    },
+  });
+  return project("demos", {
+    // Las variables son secretos y se cargan en el panel: este archivo nunca
+    // las lee ni las escribe.
+    variables: { managed: false },
+    resources: [api],
+  });
+});
