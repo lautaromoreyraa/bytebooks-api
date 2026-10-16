@@ -1,4 +1,4 @@
-package com.bytebooks.api.service.auth.Impl;
+package com.bytebooks.api.service.auth.impl;
 
 import com.bytebooks.api.domain.Usuario;
 import com.bytebooks.api.dto.auth.AuthResponseDto;

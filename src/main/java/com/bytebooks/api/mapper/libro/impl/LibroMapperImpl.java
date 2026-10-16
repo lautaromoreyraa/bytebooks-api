@@ -1,4 +1,4 @@
-package com.bytebooks.api.mapper.libro.Impl;
+package com.bytebooks.api.mapper.libro.impl;
 
 import com.bytebooks.api.domain.Categoria;
 import com.bytebooks.api.domain.Libro;
