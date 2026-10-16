@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
-public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class PuntoDeEntradaNoAutenticado implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request,

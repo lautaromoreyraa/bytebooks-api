@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class LoginAttemptService {
+public class ControlDeIntentosDeIngreso {
 
-    private static final Logger log = LoggerFactory.getLogger(LoginAttemptService.class);
+    private static final Logger log = LoggerFactory.getLogger(ControlDeIntentosDeIngreso.class);
 
     private static final int MAX_ATTEMPTS   = 5;
     private static final int LOCKOUT_MINUTES = 15;

@@ -6,11 +6,11 @@ import com.bytebooks.api.domain.Libro;
 import com.bytebooks.api.dto.google.GoogleBooksResponse.IndustryIdentifier;
 import com.bytebooks.api.dto.google.GoogleBooksResponse.VolumeInfo;
 import com.bytebooks.api.dto.google.GoogleBooksResponse.VolumeItem;
-import com.bytebooks.api.dto.libro.BookImportResponseDto;
-import com.bytebooks.api.dto.libro.GoogleBookCandidateDto;
+import com.bytebooks.api.dto.libro.ImportacionDeLibrosResponseDto;
+import com.bytebooks.api.dto.libro.CandidatoDeGoogleBooksDto;
 import com.bytebooks.api.enumeration.EstadoLibroEnum;
 import com.bytebooks.api.repository.LibroRepository;
-import com.bytebooks.api.service.libro.BookImportService;
+import com.bytebooks.api.service.libro.ImportacionDeLibrosService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -25,9 +25,9 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 @Service
-public class BookImportServiceImpl implements BookImportService {
+public class ImportacionDeLibrosServiceImpl implements ImportacionDeLibrosService {
 
-    private static final Logger log = LoggerFactory.getLogger(BookImportServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ImportacionDeLibrosServiceImpl.class);
     private static final int TARGET_IMPORTADOS = 20;
     private static final int MAX_RESULTS_GOOGLE = 40;
     private static final int MAX_TITULO_LENGTH = 255;
@@ -42,17 +42,17 @@ public class BookImportServiceImpl implements BookImportService {
     private final GoogleBooksClient googleBooksClient;
     private final LibroRepository libroRepository;
 
-    public BookImportServiceImpl(GoogleBooksClient googleBooksClient, LibroRepository libroRepository) {
+    public ImportacionDeLibrosServiceImpl(GoogleBooksClient googleBooksClient, LibroRepository libroRepository) {
         this.googleBooksClient = googleBooksClient;
         this.libroRepository = libroRepository;
     }
 
     @Override
-    public BookImportResponseDto importarDesdeGoogle(String query, Categoria categoria) {
+    public ImportacionDeLibrosResponseDto importarDesdeGoogle(String query, Categoria categoria) {
         List<VolumeItem> items = googleBooksClient.buscar(query, MAX_RESULTS_GOOGLE);
         if (items.isEmpty()) {
             log.info("Google Books no devolvio resultados para query '{}'", query);
-            return new BookImportResponseDto(query, 0, 0, 0, 0, 0);
+            return new ImportacionDeLibrosResponseDto(query, 0, 0, 0, 0, 0);
         }
 
         List<String> candidatosIsbn = items.stream()
@@ -140,7 +140,7 @@ public class BookImportServiceImpl implements BookImportService {
                 errores
         );
 
-        return new BookImportResponseDto(query, items.size(), guardados, duplicados, invalidos, errores);
+        return new ImportacionDeLibrosResponseDto(query, items.size(), guardados, duplicados, invalidos, errores);
     }
 
     private String extraerIsbn13(VolumeItem item) {
@@ -264,7 +264,7 @@ public class BookImportServiceImpl implements BookImportService {
     }
 
     @Override
-    public List<GoogleBookCandidateDto> previsualizarDesdeGoogle(String query) {
+    public List<CandidatoDeGoogleBooksDto> previsualizarDesdeGoogle(String query) {
         List<VolumeItem> items = googleBooksClient.buscar(query, MAX_RESULTS_GOOGLE);
         if (items.isEmpty()) {
             return List.of();
@@ -286,7 +286,7 @@ public class BookImportServiceImpl implements BookImportService {
 
         Set<String> titulosEnBatch = new HashSet<>();
         Set<String> isbnsEnBatch = new HashSet<>();
-        List<GoogleBookCandidateDto> candidatos = new ArrayList<>();
+        List<CandidatoDeGoogleBooksDto> candidatos = new ArrayList<>();
 
         for (VolumeItem item : items) {
             if (candidatos.size() >= TARGET_IMPORTADOS) break;
@@ -307,7 +307,7 @@ public class BookImportServiceImpl implements BookImportService {
 
             if (isbnDuplicado || tituloDuplicado) continue;
 
-            candidatos.add(new GoogleBookCandidateDto(
+            candidatos.add(new CandidatoDeGoogleBooksDto(
                     titulo,
                     sanitizeAuthor(info.authors()),
                     sanitizeDescription(info.description()),
@@ -322,11 +322,11 @@ public class BookImportServiceImpl implements BookImportService {
     }
 
     @Override
-    public BookImportResponseDto confirmarImportacion(List<GoogleBookCandidateDto> libros, Categoria categoria) {
+    public ImportacionDeLibrosResponseDto confirmarImportacion(List<CandidatoDeGoogleBooksDto> libros, Categoria categoria) {
         int guardados = 0;
         int errores = 0;
 
-        for (GoogleBookCandidateDto candidato : libros) {
+        for (CandidatoDeGoogleBooksDto candidato : libros) {
             Libro libro = new Libro();
             libro.setIsbn(candidato.isbn());
             libro.setTitulo(candidato.titulo());
@@ -348,6 +348,6 @@ public class BookImportServiceImpl implements BookImportService {
         }
 
         log.info("Importacion confirmada: {} guardados, {} errores", guardados, errores);
-        return new BookImportResponseDto("confirmar", libros.size(), guardados, 0, 0, errores);
+        return new ImportacionDeLibrosResponseDto("confirmar", libros.size(), guardados, 0, 0, errores);
     }
 }

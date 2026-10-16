@@ -48,7 +48,7 @@ flowchart LR
     G --> GB[Google Books API]
 ```
 
-**Request flow, e.g. importing a book:** the admin's request passes the JWT filter and role check → `BookImportController` → `BookImportService` queries Google Books through `GoogleBooksClient`, drops candidates whose ISBN or title already exist, maps the rest to `Libro` entities → `LibroRepository` saves them in one transaction → the response DTO reports what was imported and what was skipped.
+**Request flow, e.g. importing a book:** the admin's request passes the JWT filter and role check → `ImportacionDeLibrosController` → `ImportacionDeLibrosService` queries Google Books through `GoogleBooksClient`, drops candidates whose ISBN or title already exist, maps the rest to `Libro` entities → `LibroRepository` saves them in one transaction → the response DTO reports what was imported and what was skipped.
 
 Design decisions worth noting:
 
@@ -74,7 +74,7 @@ src/main/resources/db/migration   Flyway migrations
 src/test/java/...                  mirrors main, plus fixture/ test data builders
 ```
 
-The domain is named in Spanish (`Libro`, `Resena`, `Usuario`) because it is the language of the business; technical suffixes stay in English (`Controller`, `Repository`, `Mapper`).
+Class names are in Spanish (`Libro`, `ImportacionDeLibrosService`, `FiltroDeAutenticacionJwt`, `ManejadorGlobalDeErrores`) because it is the language of the business; technical suffixes stay in English (`Controller`, `Service`, `Repository`, `Mapper`, `Dto`). Names of external APIs keep their own (`GoogleBooksClient`).
 
 ## API overview
 
@@ -120,6 +120,7 @@ The API listens on `http://localhost:8080`. Configuration is read from environme
 | `JWT_SECRET` | Token signing key — required, no default |
 | `GOOGLE_BOOKS_API_KEY` | Google Books API key |
 | `JWT_EXPIRATION_MS` | Token lifetime (default 30 minutes) |
+| `CORS_ORIGENES` | Exact frontend origins allowed by CORS, comma-separated (default `http://localhost:5173`) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Signing image uploads; without them only `/imagenes/firma` answers `503` |
 
 ### Tests

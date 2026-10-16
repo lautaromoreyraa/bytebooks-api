@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record ConfirmarImportacionRequestDto(
         @NotEmpty(message = "Debe seleccionar al menos un libro")
-        List<GoogleBookCandidateDto> libros,
+        List<CandidatoDeGoogleBooksDto> libros,
 
         @NotNull(message = "Debe seleccionar una categoría")
         UUID categoriaId

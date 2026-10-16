@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
-public class JwtAccessDeniedHandler implements AccessDeniedHandler {
+public class ManejadorDeAccesoDenegado implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request,

@@ -1,17 +1,17 @@
-package com.bytebooks.api.service.auth.impl;
+package com.bytebooks.api.service.autenticacion.impl;
 
 import com.bytebooks.api.domain.Usuario;
-import com.bytebooks.api.dto.auth.AuthResponseDto;
-import com.bytebooks.api.dto.auth.LoginRequestDto;
-import com.bytebooks.api.dto.auth.RegisterRequestDto;
+import com.bytebooks.api.dto.autenticacion.AutenticacionResponseDto;
+import com.bytebooks.api.dto.autenticacion.IngresoRequestDto;
+import com.bytebooks.api.dto.autenticacion.RegistroRequestDto;
 import com.bytebooks.api.enumeration.RolEnum;
 import com.bytebooks.api.repository.UsuarioRepository;
-import com.bytebooks.api.security.LoginAttemptService;
+import com.bytebooks.api.security.ControlDeIntentosDeIngreso;
 import com.bytebooks.api.exception.CredencialesInvalidasException;
-import com.bytebooks.api.security.TokenBlacklistService;
+import com.bytebooks.api.security.ListaDeTokensRevocados;
 import com.bytebooks.api.security.UsuarioPrincipal;
-import com.bytebooks.api.security.jwt.JwtUtil;
-import com.bytebooks.api.service.auth.AuthService;
+import com.bytebooks.api.security.jwt.ProveedorDeTokensJwt;
+import com.bytebooks.api.service.autenticacion.AutenticacionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,23 +24,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AuthServiceImpl implements AuthService {
+public class AutenticacionServiceImpl implements AutenticacionService {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(AutenticacionServiceImpl.class);
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
-    private final LoginAttemptService loginAttemptService;
-    private final TokenBlacklistService tokenBlacklistService;
+    private final ProveedorDeTokensJwt jwtUtil;
+    private final ControlDeIntentosDeIngreso loginAttemptService;
+    private final ListaDeTokensRevocados tokenBlacklistService;
 
-    public AuthServiceImpl(UsuarioRepository usuarioRepository,
+    public AutenticacionServiceImpl(UsuarioRepository usuarioRepository,
                            PasswordEncoder passwordEncoder,
                            AuthenticationManager authenticationManager,
-                           JwtUtil jwtUtil,
-                           LoginAttemptService loginAttemptService,
-                           TokenBlacklistService tokenBlacklistService) {
+                           ProveedorDeTokensJwt jwtUtil,
+                           ControlDeIntentosDeIngreso loginAttemptService,
+                           ListaDeTokensRevocados tokenBlacklistService) {
         this.usuarioRepository     = usuarioRepository;
         this.passwordEncoder       = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -50,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponseDto register(RegisterRequestDto request) {
+    public AutenticacionResponseDto register(RegistroRequestDto request) {
         if (usuarioRepository.existsByEmail(request.email())) {
             // Mensaje generico para no revelar si el email existe (A06 - enumeracion)
             throw new IllegalStateException("No se pudo completar el registro con los datos proporcionados");
@@ -67,11 +67,11 @@ public class AuthServiceImpl implements AuthService {
         log.info("Nuevo usuario registrado - userId={}", usuario.getId());
 
         String token = jwtUtil.generateToken(usuario.getId(), usuario.getEmail(), usuario.getRol());
-        return new AuthResponseDto(usuario.getId(), usuario.getEmail(), token, "Bearer", jwtUtil.getExpirationMs(), usuario.getRol().name());
+        return new AutenticacionResponseDto(usuario.getId(), usuario.getEmail(), token, "Bearer", jwtUtil.getExpirationMs(), usuario.getRol().name());
     }
 
     @Override
-    public AuthResponseDto login(LoginRequestDto request, String clientIp) {
+    public AutenticacionResponseDto login(IngresoRequestDto request, String clientIp) {
         if (loginAttemptService.isBlocked(clientIp)) {
             log.warn("Login bloqueado por exceso de intentos - ip={}", clientIp);
             throw new IllegalStateException("Demasiados intentos fallidos. Intenta en 15 minutos.");
@@ -87,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
             log.info("Login exitoso - userId={}, ip={}", principal.getId(), clientIp);
 
             String token = jwtUtil.generateToken(principal.getId(), principal.getUsername(), principal.getRol());
-            return new AuthResponseDto(principal.getId(), principal.getUsername(), token, "Bearer", jwtUtil.getExpirationMs(), principal.getRol().name());
+            return new AutenticacionResponseDto(principal.getId(), principal.getUsername(), token, "Bearer", jwtUtil.getExpirationMs(), principal.getRol().name());
 
         } catch (BadCredentialsException | DisabledException | LockedException e) {
             loginAttemptService.loginFailed(clientIp);

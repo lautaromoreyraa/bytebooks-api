@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Registro, ingreso y salida.
  *
- * Cada test usa su propia IP de origen. No es decoracion: RateLimitFilter corta
+ * Cada test usa su propia IP de origen. No es decoracion: FiltroDeLimiteDePedidos corta
  * el registro en 3 por hora por IP, con una cache que vive dos horas y que
  * comparten todas las clases de test, porque el contexto de Spring es el mismo.
  * Sin separar las IP, el cuarto test de la clase empieza a recibir 429 y el
@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * trabajo y con rollback el alta no llega a verse.
  */
 @AutoConfigureMockMvc
-class AuthControllerIntegrationTest extends PruebaDeIntegracion {
+class AutenticacionControllerIntegrationTest extends PruebaDeIntegracion {
 
     private static final String PASSWORD = "Local1234";
 
@@ -54,7 +54,7 @@ class AuthControllerIntegrationTest extends PruebaDeIntegracion {
         usuarioRepository.deleteAll();
     }
 
-    /** RateLimitFilter cuenta por getRemoteAddr(), asi que esto aisla presupuestos. */
+    /** FiltroDeLimiteDePedidos cuenta por getRemoteAddr(), asi que esto aisla presupuestos. */
     private RequestPostProcessor desde(String ip) {
         return request -> {
             request.setRemoteAddr(ip);
