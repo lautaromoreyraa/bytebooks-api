@@ -120,6 +120,7 @@ The API listens on `http://localhost:8080`. Configuration is read from environme
 | `JWT_SECRET` | Token signing key — required, no default |
 | `GOOGLE_BOOKS_API_KEY` | Google Books API key |
 | `JWT_EXPIRATION_MS` | Token lifetime (default 30 minutes) |
+| `CORS_ORIGENES` | Exact frontend origins allowed by CORS, comma-separated (default `http://localhost:5173`) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Signing image uploads; without them only `/imagenes/firma` answers `503` |
 
 ### Tests

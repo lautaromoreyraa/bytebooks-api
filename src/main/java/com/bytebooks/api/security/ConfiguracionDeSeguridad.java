@@ -3,6 +3,7 @@ package com.bytebooks.api.security;
 import com.bytebooks.api.security.jwt.ManejadorDeAccesoDenegado;
 import com.bytebooks.api.security.jwt.PuntoDeEntradaNoAutenticado;
 import com.bytebooks.api.security.jwt.FiltroDeAutenticacionJwt;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -37,14 +38,19 @@ public class ConfiguracionDeSeguridad {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * Origenes exactos, sin comodines. Con un patron como
+     * {@code bytebooks-frontend*.vercel.app}, cualquiera que creara un proyecto en
+     * Vercel con ese prefijo quedaba habilitado. La lista sale de CORS_ORIGENES;
+     * el default es el frontend en desarrollo.
+     */
+    @Value("${app.cors.origenes}")
+    private List<String> origenesPermitidos;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOriginPatterns(List.of(
-                "http://localhost:*",
-                "https://bytebooks-frontend*.vercel.app",
-                "https://bytebooks.lautaromoreyra.dev"
-        ));
+        cors.setAllowedOrigins(origenesPermitidos);
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
         cors.setExposedHeaders(List.of("Authorization"));
