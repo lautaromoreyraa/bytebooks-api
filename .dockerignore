@@ -1,0 +1,20 @@
+# Lo que no tiene que llegar al contexto de build.
+#
+# El caso que importa es application-local.properties: vive en
+# src/main/resources, así que `COPY src` lo metería dentro del jar con las
+# claves reales de esta máquina.
+**/application-local.properties
+**/application-local.y*ml
+.env
+.env.*
+
+target/
+.git/
+.gitignore
+.idea/
+.vscode/
+*.iml
+*.md
+compose.yaml
+Dockerfile
+.dockerignore

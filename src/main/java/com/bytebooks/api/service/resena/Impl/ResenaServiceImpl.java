@@ -17,6 +17,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.NoSuchElementException;
@@ -72,7 +73,12 @@ public class ResenaServiceImpl implements ResenaService {
         return toResponseDto(resenaRepository.save(resena));
     }
 
+    /**
+     * Transaccional porque la respuesta lee el nombre del autor, que se carga
+     * perezoso: sin sesion abierta en la vista, fuera de la transaccion falla.
+     */
     @Override
+    @Transactional
     public ResenaResponseDto actualizarResena(UUID resenaId, UUID usuarioId, ResenaRequestDto request) {
         Resena resena = getResenaById(resenaId);
         verificarPermisos(resena, usuarioId);
@@ -82,6 +88,7 @@ public class ResenaServiceImpl implements ResenaService {
     }
 
     @Override
+    @Transactional
     public void eliminarResena(UUID resenaId, UUID usuarioId) {
         Resena resena = getResenaById(resenaId);
         verificarPermisos(resena, usuarioId);
