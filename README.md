@@ -26,6 +26,7 @@ REST API behind **ByteBooks**, a community book catalog: readers browse books by
 | Database | MySQL 9, schema owned by Flyway |
 | Auth | Stateless JWT, BCrypt password hashing |
 | External API | Google Books (server-side client) |
+| Images | Cloudinary, uploaded by the browser with a signature issued by the API |
 | Tests | JUnit 5, MockMvc, Testcontainers (real MySQL 9) |
 | Runtime | Multi-stage Docker image, non-root user, layered Spring Boot jar |
 | Hosting | Railway (API + MySQL) behind Cloudflare |
@@ -91,6 +92,7 @@ The domain is named in Spanish (`Libro`, `Resena`, `Usuario`) because it is the 
 | `GET` | `/usuarios/{id}`, `/usuarios/{id}/favoritos` | public |
 | `GET` `POST` `DELETE` `PUT` | `/usuarios/me/favoritos/**`, `/usuarios/me/perfil` | authenticated |
 | `GET` `POST` | `/admin/libros/import/**` | admin |
+| `POST` | `/imagenes/firma` | authenticated — signs a direct upload to Cloudinary |
 | `GET` | `/actuator/health` | platform health probe |
 
 ## Getting started
@@ -118,6 +120,7 @@ The API listens on `http://localhost:8080`. Configuration is read from environme
 | `JWT_SECRET` | Token signing key — required, no default |
 | `GOOGLE_BOOKS_API_KEY` | Google Books API key |
 | `JWT_EXPIRATION_MS` | Token lifetime (default 30 minutes) |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Signing image uploads; without them only `/imagenes/firma` answers `503` |
 
 ### Tests
 
