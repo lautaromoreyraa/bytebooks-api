@@ -31,6 +31,7 @@ public record LibroRequestDto(
         String anioPublicacion,
 
         @Size(max = 500, message = "La url de la portada no puede superar los 500 caracteres")
+        @Pattern(regexp = "^$|^https://.+", message = "La portada tiene que ser una URL https")
         String portada,
 
         EstadoLibroEnum estadoLibro) { }

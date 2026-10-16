@@ -7,10 +7,12 @@ import com.bytebooks.api.dto.libro.LibroResponseDto;
 import com.bytebooks.api.enumeration.EstadoLibroEnum;
 import com.bytebooks.api.mapper.libro.LibroMapper;
 import com.bytebooks.api.repository.LibroRepository;
+import com.bytebooks.api.repository.ResenaRepository;
 import com.bytebooks.api.service.categoria.CategoriaService;
 import com.bytebooks.api.service.libro.LibroService;
 import com.bytebooks.api.service.libro.VisibilidadDeLibros;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -24,15 +26,18 @@ public class LibroServiceImpl implements LibroService {
     private final CategoriaService categoriaService;
     private final LibroMapper libroMapper;
     private final VisibilidadDeLibros visibilidad;
+    private final ResenaRepository resenaRepository;
 
     public LibroServiceImpl(LibroRepository libroRepository,
                             CategoriaService categoriaService,
                             LibroMapper libroMapper,
-                            VisibilidadDeLibros visibilidad) {
+                            VisibilidadDeLibros visibilidad,
+                            ResenaRepository resenaRepository) {
         this.libroRepository = libroRepository;
         this.categoriaService = categoriaService;
         this.libroMapper = libroMapper;
         this.visibilidad = visibilidad;
+        this.resenaRepository = resenaRepository;
     }
 
     @Override
@@ -135,11 +140,20 @@ public class LibroServiceImpl implements LibroService {
         return (valor == null || valor.isBlank()) ? null : valor;
     }
 
+    /**
+     * Borrar un libro se lleva sus resenas y lo saca de los favoritos de quien
+     * lo guardo: sin eso las claves foraneas lo impedian y la respuesta era un
+     * 409 que decia "el dato ya existe". Todo en una transaccion: o se borra
+     * entero o no se borra nada.
+     */
     @Override
+    @Transactional
     public void eliminarLibro(UUID id) {
         if (!libroRepository.existsById(id)) {
             throw new NoSuchElementException("Libro no encontrado con id: " + id);
         }
+        resenaRepository.deleteByLibroId(id);
+        libroRepository.quitarDeFavoritos(id.toString());
         libroRepository.deleteById(id);
     }
 }

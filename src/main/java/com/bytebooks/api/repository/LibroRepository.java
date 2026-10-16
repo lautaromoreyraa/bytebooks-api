@@ -4,6 +4,7 @@ import com.bytebooks.api.domain.Categoria;
 import com.bytebooks.api.domain.Libro;
 import com.bytebooks.api.enumeration.EstadoLibroEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -76,4 +77,15 @@ public interface LibroRepository extends JpaRepository<Libro, UUID> {
             ORDER BY l.titulo
             """)
     List<Libro> findGuardadosPorUsuario(@Param("usuarioId") UUID usuarioId);
+
+    /**
+     * La tabla de favoritos la maneja Usuario (es el dueno de la relacion), asi
+     * que borrar un libro no la toca: sin esto, un libro guardado por alguien no
+     * se podia borrar por la clave foranea.
+     */
+    @Modifying
+    @Query(value = "DELETE FROM usuario_libros_guardados WHERE libro_id = :libroId", nativeQuery = true)
+    // El id viaja como texto: la columna es VARCHAR(36) y, en una consulta
+    // nativa, Hibernate manda el UUID como binario y no coincide con ninguna fila.
+    void quitarDeFavoritos(@Param("libroId") String libroId);
 }
