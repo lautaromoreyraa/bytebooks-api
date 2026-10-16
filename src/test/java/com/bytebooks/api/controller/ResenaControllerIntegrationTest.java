@@ -35,6 +35,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -178,6 +179,23 @@ class ResenaControllerIntegrationTest extends PruebaDeIntegracion {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
+    @DisplayName("la resena editada vuelve con el texto nuevo y el nombre de quien la escribio")
+    void editarLaPropia() throws Exception {
+        UUID resena = publicar(autora, "Primera impresion", 3);
+
+        // El nombre sale del usuario de la resena, que se carga perezoso: sin
+        // sesion abierta en la vista tiene que leerse dentro de la transaccion.
+        mockMvc.perform(put("/resenas/{id}", resena)
+                        .with(como(autora))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo("Mejor de lo que pense", 4)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.comentario").value("Mejor de lo que pense"))
+                .andExpect(jsonPath("$.puntuacion").value(4))
+                .andExpect(jsonPath("$.nombreUsuario").value(autora.getNombre() + " " + autora.getApellido()));
     }
 
     @Test

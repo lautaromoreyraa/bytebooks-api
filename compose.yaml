@@ -1,13 +1,38 @@
+# Sólo la base. La aplicación corre con ./mvnw spring-boot:run y
+# spring-boot-docker-compose lee este archivo para armar la conexión.
+#
+#   docker compose up -d
+#
+# Los valores salen de .env, que no se versiona. Si falta alguno, el levantado
+# falla en el acto en lugar de arrancar MySQL con un valor vacío.
 services:
- db:
-   image: mysql:8.0
-   ports:
-     - "3306:3306"
-   environment:
-     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-     MYSQL_DATABASE: ${MYSQL_DATABASE}
-   volumes:
-     - mysql_data:/var/lib/mysql
+  db:
+    # La misma serie que la MySQL de Railway (mysql:9), que es donde corre
+    # producción. La 8.0 dejó de recibir parches en abril de 2026.
+    image: mysql:9
+    ports:
+      # Sólo desde esta máquina: Podman publica en todas las interfaces y la
+      # base quedaría visible para cualquiera en la misma red.
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?falta MYSQL_ROOT_PASSWORD en .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?falta MYSQL_DATABASE en .env}
+      TZ: UTC
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+    # Por TCP (127.0.0.1) y no por socket: durante la inicialización MySQL
+    # levanta un servidor temporal sólo con socket, y un ping a "localhost"
+    # lo da por sano antes de tiempo.
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    volumes:
+      - mysql_data:/var/lib/mysql
 
 volumes:
- mysql_data:
+  mysql_data:

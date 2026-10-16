@@ -3,6 +3,7 @@ package com.bytebooks.api.repository;
 import com.bytebooks.api.domain.Resena;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +14,12 @@ import java.util.UUID;
 
 @Repository
 public interface ResenaRepository extends JpaRepository<Resena, UUID> {
+    /**
+     * El autor viaja en la misma consulta: la respuesta muestra su nombre y,
+     * sin sesion abierta en la vista, leerlo despues del repositorio falla.
+     * Traerlo de a uno por resena seria ademas una consulta extra por fila.
+     */
+    @EntityGraph(attributePaths = "usuario")
     Page<Resena> findByLibroId(UUID libroId, Pageable pageable);
     Optional<Resena> findByLibroIdAndUsuarioId(UUID libroId, UUID usuarioId);
     void deleteByLibroId(UUID libroId);

@@ -2,7 +2,7 @@
 #  BYTEBOOKS API — imagen de la aplicación
 #
 #  Build en dos etapas: la primera compila con Maven, la segunda sólo lleva
-#  el JRE y el jar. La imagen final no incluye Maven ni el código fuente.
+#  el JRE y las capas del jar. La imagen final no incluye Maven ni el código.
 #
 #  Construir:  docker build -t bytebooks-api .
 # =============================================================================
@@ -18,10 +18,16 @@ WORKDIR /build
 # Las dependencias se descargan en una capa aparte: mientras el pom.xml no
 # cambie, Docker la reutiliza y el build siguiente es mucho más rápido.
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline -B -q
 
 COPY src ./src
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -DskipTests -B -q
+
+# El jar se separa en las capas de Spring Boot. Las dependencias casi nunca
+# cambian y quedan en una capa propia: un deploy que sólo toca código mueve
+# unos cientos de KB y no el jar entero.
+RUN cp target/*.jar app.jar \
+ && java -Djarmode=tools -jar app.jar extract --layers --destination extraido
 
 
 # -----------------------------------------------------------------------------
@@ -31,33 +37,42 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Usuario sin privilegios: si alguien logra ejecutar código en el contenedor,
-# no lo hace como root.
-RUN groupadd -r bytebooks && useradd -r -g bytebooks bytebooks
+# Usuario sin privilegios, con UID fijo y numérico: Kubernetes (runAsNonRoot)
+# y Podman lo verifican por número. /app/tmp es lo único en lo que escribe.
+RUN groupadd --system --gid 10001 app \
+ && useradd --system --uid 10001 --gid app --no-create-home --shell /usr/sbin/nologin app \
+ && mkdir -p /app/tmp \
+ && chown app:app /app/tmp
 
-COPY --from=build /build/target/*.jar app.jar
-RUN chown bytebooks:bytebooks app.jar
+# Las capas quedan de root: el usuario de la app las lee pero no puede
+# reescribirlas si alguien logra ejecutar código adentro.
+COPY --from=build /build/extraido/dependencies/ ./
+COPY --from=build /build/extraido/spring-boot-loader/ ./
+COPY --from=build /build/extraido/snapshot-dependencies/ ./
+COPY --from=build /build/extraido/application/ ./
 
-USER bytebooks
+USER 10001
 
 EXPOSE 8080
 
-# Techo de memoria explícito, no un porcentaje del host.
-#
-# Railway factura la RAM que el proceso tiene tomada, y sin techo la JVM se
-# reserva una fracción de toda la memoria que ve en la máquina. El recolector
-# no devuelve lo que ya no usa, así que el proceso se queda en el máximo que
-# alcanzó alguna vez y eso es lo que se paga todo el mes.
-#
-# 256 MB de heap alcanzan: las portadas llegan de a 2 MB y la importación desde
-# Google Books trae páginas chicas. SerialGC evita los hilos y estructuras que
-# G1 mantiene, que en un contenedor de un solo core no compensan, y
-# TieredStopAtLevel=1 deja sólo el compilador rápido, que ocupa menos memoria y
-# alcanza para el tráfico de este sitio.
-#
-# Los flags van en JAVA_TOOL_OPTIONS y no en el ENTRYPOINT: un flag escrito en
-# la línea de comando le gana a la variable, y así el hosting no podría
-# ajustarlos sin un deploy nuevo. Este valor es el piso cuando nadie define la
-# variable; en Railway la define el perfil de recursos del proyecto.
+# La JVM toma la zona de TZ; se puede pisar al correr sin reconstruir.
+ENV TZ=UTC
+
+# Techo de memoria explícito, no un porcentaje del host: Railway factura la RAM
+# que el proceso tiene tomada y el recolector no devuelve lo que ya no usa.
+# Son los valores del perfil de recursos bajo; en Railway el perfil del
+# proyecto pisa esta variable entera.
 ENV JAVA_TOOL_OPTIONS="-Xmx256m -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=64m -XX:TieredStopAtLevel=1 -Xss512k -XX:MaxDirectMemorySize=64m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
+
+# Lo que no es memoria va en otra variable, justamente porque Railway reemplaza
+# JAVA_TOOL_OPTIONS completa: si el directorio temporal viviera ahí, el perfil
+# se lo llevaría puesto. Las subidas multipart de Tomcat se escriben acá.
+ENV JDK_JAVA_OPTIONS="-Djava.io.tmpdir=/app/tmp"
+
+# Railway no lee esta directiva (usa healthcheckPath) y `podman build` en
+# formato OCI la descarta; sirve para `docker run` y para Compose sin
+# healthcheck propio. PORT se expande al correr, no al construir.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=5 \
+  CMD wget -qO- "http://127.0.0.1:${PORT:-8080}/actuator/health" | grep -q UP || exit 1
+
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
