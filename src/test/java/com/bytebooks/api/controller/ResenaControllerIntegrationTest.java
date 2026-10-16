@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Publicar, listar y borrar resenas. Lo mas delicado es quien puede borrar la
- * de otro, porque la regla no esta en SecurityConfig sino adentro del service.
+ * de otro, porque la regla no esta en ConfiguracionDeSeguridad sino adentro del service.
  */
 @AutoConfigureMockMvc
 class ResenaControllerIntegrationTest extends PruebaDeIntegracion {

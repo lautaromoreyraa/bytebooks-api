@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * Cada pedido de MockMvc sale desde una IP distinta.
  *
- * RateLimitFilter cuenta por IP y todos los tests comparten el contexto: desde
+ * FiltroDeLimiteDePedidos cuenta por IP y todos los tests comparten el contexto: desde
  * 127.0.0.1 la suite entera consumia un solo cupo de 60 pedidos por minuto y,
  * segun lo rapido que corriera, algun test recibia 429 sin tener nada que ver
  * con el limite. Los tests que prueban el limite fijan su propia IP con

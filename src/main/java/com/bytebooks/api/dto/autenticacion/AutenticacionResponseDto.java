@@ -1,8 +1,8 @@
-package com.bytebooks.api.dto.auth;
+package com.bytebooks.api.dto.autenticacion;
 
 import java.util.UUID;
 
-public record AuthResponseDto(
+public record AutenticacionResponseDto(
         UUID userId,
         String email,
         String accessToken,

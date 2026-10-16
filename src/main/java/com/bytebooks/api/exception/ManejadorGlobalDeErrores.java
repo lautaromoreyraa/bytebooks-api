@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class ManejadorGlobalDeErrores {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ManejadorGlobalDeErrores.class);
 
     /**
      * Pedidos mal armados por el cliente: JSON que no se puede leer, un id que

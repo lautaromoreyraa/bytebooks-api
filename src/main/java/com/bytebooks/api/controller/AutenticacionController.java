@@ -1,9 +1,9 @@
 package com.bytebooks.api.controller;
 
-import com.bytebooks.api.dto.auth.AuthResponseDto;
-import com.bytebooks.api.dto.auth.LoginRequestDto;
-import com.bytebooks.api.dto.auth.RegisterRequestDto;
-import com.bytebooks.api.service.auth.AuthService;
+import com.bytebooks.api.dto.autenticacion.AutenticacionResponseDto;
+import com.bytebooks.api.dto.autenticacion.IngresoRequestDto;
+import com.bytebooks.api.dto.autenticacion.RegistroRequestDto;
+import com.bytebooks.api.service.autenticacion.AutenticacionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import com.bytebooks.api.security.IpDelCliente;
@@ -13,24 +13,24 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
-public class AuthController {
+public class AutenticacionController {
 
-    private final AuthService authService;
+    private final AutenticacionService authService;
 
     private final IpDelCliente ipDelCliente;
 
-    public AuthController(AuthService authService, IpDelCliente ipDelCliente) {
+    public AutenticacionController(AutenticacionService authService, IpDelCliente ipDelCliente) {
         this.authService = authService;
         this.ipDelCliente = ipDelCliente;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<AutenticacionResponseDto> register(@Valid @RequestBody RegistroRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@Valid @RequestBody LoginRequestDto request,
+    public ResponseEntity<AutenticacionResponseDto> login(@Valid @RequestBody IngresoRequestDto request,
                                                   HttpServletRequest httpRequest) {
         return ResponseEntity.ok(authService.login(request, ipDelCliente.de(httpRequest)));
     }

@@ -1,9 +1,9 @@
-package com.bytebooks.api.dto.auth;
+package com.bytebooks.api.dto.autenticacion;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public record LoginRequestDto(
+public record IngresoRequestDto(
         @NotBlank @Email
         String email,
 

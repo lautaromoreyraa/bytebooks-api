@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.UUID;
 
 @Component
-public class JwtUtil {
+public class ProveedorDeTokensJwt {
 
     @Value("${jwt.secret}")
     private String secret;

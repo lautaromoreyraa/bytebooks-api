@@ -22,13 +22,13 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Order(-200)
-public class RateLimitFilter extends OncePerRequestFilter {
+public class FiltroDeLimiteDePedidos extends OncePerRequestFilter {
 
-    private static final Logger log = LoggerFactory.getLogger(RateLimitFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(FiltroDeLimiteDePedidos.class);
 
     private final IpDelCliente ipDelCliente;
 
-    public RateLimitFilter(IpDelCliente ipDelCliente) {
+    public FiltroDeLimiteDePedidos(IpDelCliente ipDelCliente) {
         this.ipDelCliente = ipDelCliente;
     }
 
