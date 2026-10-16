@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Recorre el camino completo —HTTP, seguridad, service, JPA, MySQL— porque lo que
- * se prueba aca depende de las reglas de SecurityConfig y de las restricciones
+ * se prueba aca depende de las reglas de ConfiguracionDeSeguridad y de las restricciones
  * de la base, y ninguna de las dos existe en un test unitario.
  */
 // Sin @Transactional a proposito: con rollback el insert no se descarga a la

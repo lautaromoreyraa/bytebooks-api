@@ -1,8 +1,8 @@
 package com.bytebooks.api.security;
 
-import com.bytebooks.api.security.jwt.JwtAccessDeniedHandler;
-import com.bytebooks.api.security.jwt.JwtAuthenticationEntryPoint;
-import com.bytebooks.api.security.jwt.JwtAuthenticationFilter;
+import com.bytebooks.api.security.jwt.ManejadorDeAccesoDenegado;
+import com.bytebooks.api.security.jwt.PuntoDeEntradaNoAutenticado;
+import com.bytebooks.api.security.jwt.FiltroDeAutenticacionJwt;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,7 +25,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class SecurityConfig {
+public class ConfiguracionDeSeguridad {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -57,9 +57,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                    JwtAuthenticationFilter jwtFilter,
-                                                    JwtAuthenticationEntryPoint entryPoint,
-                                                    JwtAccessDeniedHandler accessDeniedHandler) throws Exception {
+                                                    FiltroDeAutenticacionJwt jwtFilter,
+                                                    PuntoDeEntradaNoAutenticado entryPoint,
+                                                    ManejadorDeAccesoDenegado accessDeniedHandler) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))

@@ -1,6 +1,6 @@
 package com.bytebooks.api.dto.libro;
 
-public record BookImportResponseDto(
+public record ImportacionDeLibrosResponseDto(
         String query,
         int encontrados,
         int guardados,

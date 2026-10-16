@@ -1,6 +1,6 @@
 package com.bytebooks.api.security.jwt;
 
-import com.bytebooks.api.security.TokenBlacklistService;
+import com.bytebooks.api.security.ListaDeTokensRevocados;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,14 +18,14 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class FiltroDeAutenticacionJwt extends OncePerRequestFilter {
 
-    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(FiltroDeAutenticacionJwt.class);
 
-    private final JwtUtil jwtUtil;
-    private final TokenBlacklistService tokenBlacklistService;
+    private final ProveedorDeTokensJwt jwtUtil;
+    private final ListaDeTokensRevocados tokenBlacklistService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService) {
+    public FiltroDeAutenticacionJwt(ProveedorDeTokensJwt jwtUtil, ListaDeTokensRevocados tokenBlacklistService) {
         this.jwtUtil = jwtUtil;
         this.tokenBlacklistService = tokenBlacklistService;
     }

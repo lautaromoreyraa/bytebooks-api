@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class TokenBlacklistService {
+public class ListaDeTokensRevocados {
 
     private final Cache<String, Boolean> blacklist;
 
-    public TokenBlacklistService(@Value("${jwt.expiration-ms}") long expirationMs) {
+    public ListaDeTokensRevocados(@Value("${jwt.expiration-ms}") long expirationMs) {
         this.blacklist = Caffeine.newBuilder()
                 .expireAfterWrite(expirationMs, TimeUnit.MILLISECONDS)
                 .build();

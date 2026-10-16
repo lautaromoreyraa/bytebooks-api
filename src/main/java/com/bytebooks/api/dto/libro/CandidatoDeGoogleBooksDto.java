@@ -1,6 +1,6 @@
 package com.bytebooks.api.dto.libro;
 
-public record GoogleBookCandidateDto(
+public record CandidatoDeGoogleBooksDto(
         String titulo,
         String autor,
         String descripcion,

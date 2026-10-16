@@ -1,11 +1,11 @@
-package com.bytebooks.api.dto.auth;
+package com.bytebooks.api.dto.autenticacion;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record RegisterRequestDto(
+public record RegistroRequestDto(
         @NotBlank(message = "El nombre es obligatorio")
         @Size(max = 50)
         String nombre,
