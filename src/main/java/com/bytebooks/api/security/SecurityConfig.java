@@ -70,6 +70,9 @@ public class SecurityConfig {
                     .accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
                 // Publico
+                // La sonda de salud de Railway y del contenedor: sin token y,
+                // por show-details=never, sin revelar nada mas que UP o DOWN.
+                .requestMatchers(HttpMethod.GET,    "/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET,    "/libros", "/libros/**").permitAll()
                 .requestMatchers(HttpMethod.GET,    "/categorias", "/categorias/**").permitAll()
