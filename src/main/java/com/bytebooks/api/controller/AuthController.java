@@ -6,7 +6,7 @@ import com.bytebooks.api.dto.auth.RegisterRequestDto;
 import com.bytebooks.api.service.auth.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
+import com.bytebooks.api.security.IpDelCliente;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +17,11 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Value("${app.security.trust-proxy:false}")
-    private boolean trustProxy;
+    private final IpDelCliente ipDelCliente;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, IpDelCliente ipDelCliente) {
         this.authService = authService;
+        this.ipDelCliente = ipDelCliente;
     }
 
     @PostMapping("/register")
@@ -32,7 +32,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@Valid @RequestBody LoginRequestDto request,
                                                   HttpServletRequest httpRequest) {
-        return ResponseEntity.ok(authService.login(request, getClientIp(httpRequest)));
+        return ResponseEntity.ok(authService.login(request, ipDelCliente.de(httpRequest)));
     }
 
     @PostMapping("/logout")
@@ -44,13 +44,4 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    private String getClientIp(HttpServletRequest request) {
-        if (trustProxy) {
-            String forwarded = request.getHeader("X-Forwarded-For");
-            if (forwarded != null && !forwarded.isBlank()) {
-                return forwarded.split(",")[0].trim();
-            }
-        }
-        return request.getRemoteAddr();
-    }
 }

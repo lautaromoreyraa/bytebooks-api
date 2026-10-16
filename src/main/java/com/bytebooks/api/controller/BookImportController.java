@@ -4,14 +4,13 @@ import com.bytebooks.api.domain.Categoria;
 import com.bytebooks.api.dto.libro.BookImportResponseDto;
 import com.bytebooks.api.dto.libro.ConfirmarImportacionRequestDto;
 import com.bytebooks.api.dto.libro.GoogleBookCandidateDto;
-import com.bytebooks.api.repository.CategoriaRepository;
+import com.bytebooks.api.service.categoria.CategoriaService;
 import com.bytebooks.api.service.libro.BookImportService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @RestController
@@ -19,11 +18,11 @@ import java.util.UUID;
 public class BookImportController {
 
     private final BookImportService bookImportService;
-    private final CategoriaRepository categoriaRepository;
+    private final CategoriaService categoriaService;
 
-    public BookImportController(BookImportService bookImportService, CategoriaRepository categoriaRepository) {
+    public BookImportController(BookImportService bookImportService, CategoriaService categoriaService) {
         this.bookImportService = bookImportService;
-        this.categoriaRepository = categoriaRepository;
+        this.categoriaService = categoriaService;
     }
 
     @PostMapping("/import")
@@ -31,8 +30,7 @@ public class BookImportController {
             @RequestParam String query,
             @RequestParam UUID categoriaId) {
 
-        Categoria categoria = categoriaRepository.findById(categoriaId)
-                .orElseThrow(() -> new NoSuchElementException("Categoria no encontrada con id: " + categoriaId));
+        Categoria categoria = categoriaService.getCategoriaEntityById(categoriaId);
 
         return ResponseEntity.ok(bookImportService.importarDesdeGoogle(query, categoria));
     }
@@ -44,8 +42,7 @@ public class BookImportController {
 
     @PostMapping("/import/confirmar")
     public ResponseEntity<BookImportResponseDto> confirmar(@Valid @RequestBody ConfirmarImportacionRequestDto request) {
-        Categoria categoria = categoriaRepository.findById(request.categoriaId())
-                .orElseThrow(() -> new NoSuchElementException("Categoria no encontrada con id: " + request.categoriaId()));
+        Categoria categoria = categoriaService.getCategoriaEntityById(request.categoriaId());
 
         return ResponseEntity.ok(bookImportService.confirmarImportacion(request.libros(), categoria));
     }

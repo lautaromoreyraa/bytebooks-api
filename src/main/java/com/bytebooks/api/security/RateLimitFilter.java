@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,8 +26,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(RateLimitFilter.class);
 
-    @Value("${app.security.trust-proxy:false}")
-    private boolean trustProxy;
+    private final IpDelCliente ipDelCliente;
+
+    public RateLimitFilter(IpDelCliente ipDelCliente) {
+        this.ipDelCliente = ipDelCliente;
+    }
 
     private final Cache<String, Bucket> loginBuckets = Caffeine.newBuilder()
             .expireAfterAccess(2, TimeUnit.MINUTES).build();
@@ -43,7 +45,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String ip     = getClientIp(request);
+        String ip     = ipDelCliente.de(request);
         String path   = request.getRequestURI();
         String method = request.getMethod();
 
@@ -77,13 +79,4 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 .build();
     }
 
-    private String getClientIp(HttpServletRequest request) {
-        if (trustProxy) {
-            String forwarded = request.getHeader("X-Forwarded-For");
-            if (forwarded != null && !forwarded.isBlank()) {
-                return forwarded.split(",")[0].trim();
-            }
-        }
-        return request.getRemoteAddr();
-    }
 }
