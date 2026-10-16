@@ -6,7 +6,7 @@ import com.bytebooks.api.dto.categoria.CategoriaResponseDto;
 import com.bytebooks.api.dto.libro.LibroResponseDto;
 import com.bytebooks.api.fixture.FabricaDeLibros;
 import com.bytebooks.api.mapper.categoria.CategoriaMapper;
-import com.bytebooks.api.mapper.libro.Impl.LibroMapperImpl;
+import com.bytebooks.api.mapper.libro.impl.LibroMapperImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

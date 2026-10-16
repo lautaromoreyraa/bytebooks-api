@@ -1,4 +1,4 @@
-package com.bytebooks.api.service.libro.Impl;
+package com.bytebooks.api.service.libro.impl;
 
 import com.bytebooks.api.client.GoogleBooksClient;
 import com.bytebooks.api.domain.Categoria;

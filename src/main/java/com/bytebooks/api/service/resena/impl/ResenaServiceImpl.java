@@ -1,4 +1,4 @@
-package com.bytebooks.api.service.resena.Impl;
+package com.bytebooks.api.service.resena.impl;
 
 import com.bytebooks.api.domain.Libro;
 import com.bytebooks.api.domain.Resena;

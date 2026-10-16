@@ -1,4 +1,4 @@
-package com.bytebooks.api.service.usuario.Impl;
+package com.bytebooks.api.service.usuario.impl;
 
 import com.bytebooks.api.domain.Usuario;
 import com.bytebooks.api.dto.usuario.ActualizarPerfilRequestDto;

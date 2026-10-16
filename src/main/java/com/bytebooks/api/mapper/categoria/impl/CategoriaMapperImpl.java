@@ -1,4 +1,4 @@
-package com.bytebooks.api.mapper.categoria.Impl;
+package com.bytebooks.api.mapper.categoria.impl;
 
 import com.bytebooks.api.domain.Categoria;
 import com.bytebooks.api.dto.categoria.CategoriaRequestDto;

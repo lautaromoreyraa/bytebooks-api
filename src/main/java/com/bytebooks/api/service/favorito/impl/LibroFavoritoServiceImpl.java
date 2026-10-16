@@ -1,4 +1,4 @@
-package com.bytebooks.api.service.favorito.Impl;
+package com.bytebooks.api.service.favorito.impl;
 
 import com.bytebooks.api.domain.Libro;
 import com.bytebooks.api.domain.Usuario;
