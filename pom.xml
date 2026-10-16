@@ -38,6 +38,15 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<!-- Flyway: unico dueno del esquema -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-mysql</artifactId>
+		</dependency>
 		<!-- Sonda de salud para Railway y el healthcheck del contenedor -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
