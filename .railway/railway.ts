@@ -24,6 +24,12 @@ export default defineRailway(() => {
       // La politica ya es ON_FAILURE por defecto (Railway la guarda vacia);
       // solo se acota la cantidad de reintentos.
       restartPolicyMaxRetries: 3,
+      // Railway lo duerme tras 10 minutos sin trafico de salida y lo despierta
+      // con el proximo pedido: casi nada pasa el filtro de Cloudflare, y una JVM
+      // ociosa las 24 horas era casi toda la factura. Necesita DB_POOL_MIN=0 en
+      // las variables; con una conexion abierta, los keepalive de Hikari a MySQL
+      // cuentan como trafico y el servicio no llega a dormirse nunca.
+      sleepApplication: true,
       // El techo del contenedor; la JVM se ajusta adentro con el perfil de recursos.
       limitOverride: { containers: { cpu: 0.5, memoryBytes: 500000000 } },
     },
