@@ -57,6 +57,12 @@ public class ManejadorGlobalDeErrores {
                 .body(new ErrorResponse(HttpStatus.SERVICE_UNAVAILABLE.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(GoogleBooksNoDisponibleException.class)
+    public ResponseEntity<ErrorResponse> handleGoogleBooksNoDisponible(GoogleBooksNoDisponibleException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ErrorResponse(HttpStatus.SERVICE_UNAVAILABLE.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(NoSuchElementException ex) {
         return ResponseEntity
