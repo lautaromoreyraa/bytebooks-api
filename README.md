@@ -109,6 +109,7 @@ EOF
 # 2. Run the API — spring-boot-docker-compose starts MySQL from compose.yaml
 export JWT_SECRET=$(openssl rand -base64 48)
 export GOOGLE_BOOKS_API_KEY=your-key
+export TURNSTILE_CLAVE_SECRETA=1x0000000000000000000000000000000AA  # Cloudflare's always-pass test key
 ./mvnw spring-boot:run
 ```
 
@@ -119,6 +120,7 @@ The API listens on `http://localhost:8080`. Configuration is read from environme
 | `MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Database connection (resolved from Docker Compose locally) |
 | `JWT_SECRET` | Token signing key — required, no default |
 | `GOOGLE_BOOKS_API_KEY` | Google Books API key |
+| `TURNSTILE_CLAVE_SECRETA` | Cloudflare Turnstile secret that `POST /auth/register` verifies the challenge token against — required, no default |
 | `JWT_EXPIRATION_MS` | Token lifetime (default 30 minutes) |
 | `CORS_ORIGENES` | Exact frontend origins allowed by CORS, comma-separated (default `http://localhost:5173`) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Signing image uploads; without them only `/imagenes/firma` answers `503` |
