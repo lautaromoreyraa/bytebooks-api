@@ -12,11 +12,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.HexFormat;
 
-/**
- * Firma subidas a Cloudinary para que el navegador suba directo, sin que el
- * archivo pase por la API y sin un upload preset abierto: con un preset sin
- * firma cualquiera que leyera el bundle podia subir archivos a la cuenta.
- */
 @Service
 public class FirmaDeSubidaServiceImpl implements FirmaDeSubidaService {
 
@@ -43,9 +38,6 @@ public class FirmaDeSubidaServiceImpl implements FirmaDeSubidaService {
                             + "CLOUDINARY_API_KEY o CLOUDINARY_API_SECRET");
         }
         long marcaDeTiempo = Instant.now().getEpochSecond();
-        // Solo se firman la carpeta y la hora, y son lo unico que el navegador
-        // puede mandar: si tambien eligiera el public_id, la firma le dejaria
-        // pisar imagenes de otros. Cloudinary rechaza la firma pasada una hora.
         String aFirmar = "folder=" + carpeta + "&timestamp=" + marcaDeTiempo;
         return new FirmaDeSubidaResponseDto(sha1(aFirmar + apiSecret), marcaDeTiempo, apiKey, nombreDeLaNube, carpeta);
     }

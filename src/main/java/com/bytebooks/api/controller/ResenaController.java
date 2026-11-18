@@ -25,12 +25,6 @@ public class ResenaController {
         this.resenaService = resenaService;
     }
 
-    /**
-     * La direccion es explicita: sin ella Spring ordena ascendente y la primera
-     * pagina son las diez resenas mas viejas. Ademas de estar al reves para quien
-     * lee, hacia que una resena recien publicada apareciera arriba y al recargar
-     * saltara al final de la ultima pagina.
-     */
     @GetMapping("/libros/{libroId}/resenas")
     public ResponseEntity<Page<ResenaResponseDto>> getResenasByLibro(
             @PathVariable UUID libroId,
@@ -39,11 +33,6 @@ public class ResenaController {
         return ResponseEntity.ok(resenaService.getResenasByLibro(libroId, pageable));
     }
 
-    /**
-     * Promedio y total sobre la tabla entera. El cliente los sacaba de la primera
-     * pagina, asi que un libro con mas de diez resenas mostraba un promedio de
-     * una muestra o directamente ninguno.
-     */
     @GetMapping("/libros/{libroId}/resenas/resumen")
     public ResponseEntity<ResumenDeResenasDto> getResumenDeResenas(@PathVariable UUID libroId) {
         return ResponseEntity.ok(resenaService.getResumenByLibro(libroId));

@@ -22,12 +22,6 @@ public class GoogleBooksClient {
     private static final Logger log = LoggerFactory.getLogger(GoogleBooksClient.class);
     private static final String BASE_URL = "https://www.googleapis.com/books/v1";
 
-    /**
-     * Google Books rechaza de a ratos pedidos válidos con un 503
-     * («backendFailed») y deja pasar el siguiente. Tres intentos alcanzan para
-     * que esa falla no le llegue al usuario sin demorar mucho una búsqueda
-     * cuando Google está caído de verdad.
-     */
     private static final int INTENTOS = 3;
 
     @Value("${google.books.api.key}")
@@ -41,18 +35,11 @@ public class GoogleBooksClient {
         this(builder, Duration.ofMillis(400));
     }
 
-    /** Los tests pasan una pausa en cero para no esperar entre intentos. */
     GoogleBooksClient(RestClient.Builder builder, Duration pausaEntreIntentos) {
         this.restClient = builder.baseUrl(BASE_URL).build();
         this.pausaEntreIntentos = pausaEntreIntentos;
     }
 
-    /**
-     * Busca volúmenes en Google Books. Si Google no contesta —un 5xx o un corte
-     * de red— reintenta con una pausa que crece; si después de los reintentos
-     * sigue sin contestar, lanza {@link GoogleBooksNoDisponibleException} para
-     * que la pantalla diga que Google no responde y no que no hubo resultados.
-     */
     public List<GoogleBooksResponse.VolumeItem> buscar(String query, int maxResults) {
         for (int intento = 1; ; intento++) {
             try {
@@ -64,7 +51,6 @@ public class GoogleBooksClient {
                 }
                 esperar(intento);
             } catch (HttpClientErrorException e) {
-                // Cuota agotada o clave rechazada: reintentar no cambia nada.
                 if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS ||
                         e.getStatusCode() == HttpStatus.FORBIDDEN) {
                     log.error("Google Books respondió: {}", e.getResponseBodyAsString());

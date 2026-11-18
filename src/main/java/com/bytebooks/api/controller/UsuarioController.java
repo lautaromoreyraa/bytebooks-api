@@ -26,13 +26,11 @@ public class UsuarioController {
         this.favoritoService = favoritoService;
     }
 
-    // Perfil público — sin autenticación
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioPerfilResponseDto> getPerfil(@PathVariable UUID id) {
         return ResponseEntity.ok(usuarioService.getPerfilById(id));
     }
 
-    // Actualizar perfil propio
     @PutMapping("/me/perfil")
     public ResponseEntity<UsuarioPerfilResponseDto> actualizarPerfil(
             @AuthenticationPrincipal String userId,
@@ -40,13 +38,11 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.actualizarPerfil(UUID.fromString(userId), request));
     }
 
-    // Favoritos públicos de un usuario
     @GetMapping("/{id}/favoritos")
     public ResponseEntity<List<LibroResponseDto>> getFavoritosDeUsuario(@PathVariable UUID id) {
         return ResponseEntity.ok(favoritoService.getFavoritosDeUsuario(id));
     }
 
-    // Mis favoritos
     @GetMapping("/me/favoritos")
     public ResponseEntity<List<LibroResponseDto>> getMisFavoritos(
             @AuthenticationPrincipal String userId) {

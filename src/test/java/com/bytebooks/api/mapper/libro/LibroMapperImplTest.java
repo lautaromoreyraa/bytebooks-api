@@ -16,11 +16,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * El mapper decide que se expone y que no, asi que se prueba con la
- * implementacion real y no con un mock: justamente lo que se quiere verificar es
- * el contenido del DTO.
- */
 class LibroMapperImplTest {
 
     private LibroMapper mapper;
@@ -45,8 +40,6 @@ class LibroMapperImplTest {
     @Test
     @DisplayName("el isbn llega al DTO")
     void elIsbnLlegaAlDto() {
-        // Sin esto la busqueda de portadas en Open Library no tiene con que
-        // trabajar: fue justamente el campo que faltaba mapear.
         Libro libro = FabricaDeLibros.disponible("Rayuela");
         libro.setIsbn("9788437604947");
 
@@ -56,8 +49,6 @@ class LibroMapperImplTest {
     @Test
     @DisplayName("las categorias salen ordenadas por nombre")
     void categoriasOrdenadasPorNombre() {
-        // El orden importa porque la ficha las muestra separadas por punto medio
-        // y un Set sin ordenar cambiaria el texto entre dos cargas iguales.
         Libro libro = FabricaDeLibros.disponible("Un libro");
         Set<Categoria> desordenadas = new LinkedHashSet<>();
         desordenadas.add(FabricaDeLibros.categoria("Poesia"));

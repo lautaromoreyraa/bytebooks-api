@@ -43,10 +43,6 @@ public class ResenaServiceImpl implements ResenaService {
         return resenaRepository.findByLibroId(libroId, pageable).map(this::toResponseDto);
     }
 
-    /**
-     * El promedio se redondea a un decimal porque es lo que se muestra: un
-     * 4.333333333333333 en el JSON solo obliga a cada cliente a recortarlo.
-     */
     @Override
     public ResumenDeResenasDto getResumenByLibro(UUID libroId) {
         Double promedio = resenaRepository.promedioDePuntuacion(libroId);
@@ -73,10 +69,6 @@ public class ResenaServiceImpl implements ResenaService {
         return toResponseDto(resenaRepository.save(resena));
     }
 
-    /**
-     * Transaccional porque la respuesta lee el nombre del autor, que se carga
-     * perezoso: sin sesion abierta en la vista, fuera de la transaccion falla.
-     */
     @Override
     @Transactional
     public ResenaResponseDto actualizarResena(UUID resenaId, UUID usuarioId, ResenaRequestDto request) {

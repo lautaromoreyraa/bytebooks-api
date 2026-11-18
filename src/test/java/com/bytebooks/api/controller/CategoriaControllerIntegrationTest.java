@@ -29,10 +29,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Las categorias se leen sin sesion y solo las toca administracion. Es el unico
- * recurso donde moderador no alcanza, asi que conviene que quede fijado.
- */
 @AutoConfigureMockMvc
 class CategoriaControllerIntegrationTest extends PruebaDeIntegracion {
 

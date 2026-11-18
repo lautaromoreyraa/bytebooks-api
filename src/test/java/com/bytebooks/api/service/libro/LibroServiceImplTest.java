@@ -41,11 +41,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
-/**
- * La visibilidad de los libros ocultos y el guardado de los campos del
- * formulario viven en este service, asi que se prueban aca sin levantar Spring.
- * El rol se lee del SecurityContextHolder, que se arma a mano en cada caso.
- */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class LibroServiceImplTest {
@@ -59,8 +54,6 @@ class LibroServiceImplTest {
     @Mock
     private LibroMapper libroMapper;
 
-    // La regla de visibilidad va con la implementacion real, no mockeada: lo que
-    // se prueba aca es justamente como responde ante cada rol.
     @Spy
     private VisibilidadDeLibros visibilidad = new VisibilidadDeLibrosImpl();
 
@@ -87,7 +80,6 @@ class LibroServiceImplTest {
         SecurityContextHolder.clearContext();
     }
 
-    /** El mapper real se prueba aparte; aca solo hace falta identificar el libro. */
     private void mapearPorTitulo() {
         when(libroMapper.toResponseDto(any(Libro.class))).thenAnswer(invocacion -> {
             Libro libro = invocacion.getArgument(0);
@@ -102,12 +94,6 @@ class LibroServiceImplTest {
     @DisplayName("Visibilidad de los libros ocultos")
     class Visibilidad {
 
-        /*
-         * El filtro por estado dejo de estar en memoria y pasa a la consulta,
-         * asi que lo que se prueba aca es que el service pida la consulta
-         * correcta segun quien mire. Que la consulta filtre de verdad lo cubre
-         * LibroControllerIntegrationTest contra una base real.
-         */
 
         @Test
         @DisplayName("el catalogo publico se pide ya filtrado a la base")

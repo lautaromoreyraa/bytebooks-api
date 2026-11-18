@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** Usuarios armados para los tests. El email es unico por instancia. */
 public final class FabricaDeUsuarios {
 
     private FabricaDeUsuarios() {
@@ -19,7 +18,6 @@ public final class FabricaDeUsuarios {
         usuario.setNombre("Nombre");
         usuario.setApellido("Apellido");
         usuario.setEmail("usuaria-" + UUID.randomUUID() + "@ejemplo.test");
-        // No pasa por el encoder: ningun test de los de aca inicia sesion.
         usuario.setPasswordHash("$2a$10$hashDePruebaQueNoSeVerifica");
         usuario.setRol(rol);
         usuario.setLibrosGuardados(new ArrayList<>());
