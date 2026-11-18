@@ -23,18 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Registro, ingreso y salida.
- *
- * Cada test usa su propia IP de origen. No es decoracion: FiltroDeLimiteDePedidos corta
- * el registro en 3 por hora por IP, con una cache que vive dos horas y que
- * comparten todas las clases de test, porque el contexto de Spring es el mismo.
- * Sin separar las IP, el cuarto test de la clase empieza a recibir 429 y el
- * fallo aparece en cualquier lado menos donde esta la causa.
- *
- * Sin @Transactional: el filtro JWT resuelve el usuario en su propia unidad de
- * trabajo y con rollback el alta no llega a verse.
- */
 @AutoConfigureMockMvc
 class AutenticacionControllerIntegrationTest extends PruebaDeIntegracion {
 
@@ -54,7 +42,6 @@ class AutenticacionControllerIntegrationTest extends PruebaDeIntegracion {
         usuarioRepository.deleteAll();
     }
 
-    /** FiltroDeLimiteDePedidos cuenta por getRemoteAddr(), asi que esto aisla presupuestos. */
     private RequestPostProcessor desde(String ip) {
         return request -> {
             request.setRemoteAddr(ip);
@@ -118,8 +105,6 @@ class AutenticacionControllerIntegrationTest extends PruebaDeIntegracion {
                 .andExpect(status().isConflict())
                 .andReturn();
 
-        // El mensaje es deliberadamente vago: decir "ese email ya existe"
-        // convierte al registro en un oraculo de que cuentas hay.
         assertThat(resultado.getResponse().getContentAsString())
                 .doesNotContain("camila@ejemplo.test");
     }
@@ -149,8 +134,6 @@ class AutenticacionControllerIntegrationTest extends PruebaDeIntegracion {
     @Test
     @DisplayName("el cuarto registro desde la misma IP se corta con 429")
     void elRegistroTieneLimitePorIp() throws Exception {
-        // Un alta masiva de cuentas desde una sola IP es el abuso obvio de este
-        // endpoint. El limite es 3 por hora.
         for (int i = 1; i <= 3; i++) {
             mockMvc.perform(post("/auth/register")
                             .with(desde("10.0.0.6"))
@@ -197,8 +180,6 @@ class AutenticacionControllerIntegrationTest extends PruebaDeIntegracion {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().is2xxSuccessful());
 
-        // Sin la lista negra, cerrar sesion seria solo borrar el token del
-        // navegador: quien lo hubiera copiado antes lo seguiria usando.
         mockMvc.perform(get("/usuarios/me/favoritos")
                         .with(desde("10.0.0.8"))
                         .header("Authorization", "Bearer " + token))

@@ -7,13 +7,6 @@ import com.bytebooks.api.enumeration.EstadoLibroEnum;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Libros armados para los tests.
- *
- * Cada metodo devuelve un libro valido y completo: si un test necesita que un
- * campo tenga cierto valor, lo pisa despues. Asi lo unico que aparece escrito
- * en el test es lo que ese test esta probando, y el resto no distrae.
- */
 public final class FabricaDeLibros {
 
     private FabricaDeLibros() {
@@ -47,10 +40,6 @@ public final class FabricaDeLibros {
         return libro;
     }
 
-    /**
-     * La columna isbn es UNIQUE: dos libros de la fabrica dentro del mismo test
-     * chocarian si compartieran valor fijo.
-     */
     public static String isbnAleatorio() {
         long numero = Math.abs(UUID.randomUUID().getMostSignificantBits() % 1_000_000_000L);
         return String.format("978%010d", numero);

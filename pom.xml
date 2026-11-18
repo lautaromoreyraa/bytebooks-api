@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.1.2</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.bytebooks</groupId>
 	<artifactId>demo</artifactId>
@@ -28,8 +28,6 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<!-- 4.1.2 gestiona Jackson 3.1.7 y 2.21.7; se fijan las ultimas de cada linea
-		     (3 para Spring, 2 para las librerias que todavia lo usan, como jjwt). -->
 		<jackson-bom.version>3.1.8</jackson-bom.version>
 		<jackson-2-bom.version>2.21.8</jackson-2-bom.version>
 		<archunit.version>1.4.1</archunit.version>
@@ -47,7 +45,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-restclient</artifactId>
 		</dependency>
-		<!-- Flyway: unico dueno del esquema -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-flyway</artifactId>
@@ -60,7 +57,6 @@
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-mysql</artifactId>
 		</dependency>
-		<!-- Sonda de salud para Railway y el healthcheck del contenedor -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -96,10 +92,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Los tests de integracion corren contra un MySQL 8 real y descartable,
-		     no contra una base embebida: las restricciones UNIQUE, los enums y los
-		     errores de integridad son justo lo que se quiere verificar, y en H2 no
-		     se comportan igual. Las versiones las maneja el BOM de Spring Boot. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-testcontainers</artifactId>

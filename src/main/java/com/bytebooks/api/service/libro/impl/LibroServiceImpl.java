@@ -52,11 +52,6 @@ public class LibroServiceImpl implements LibroService {
         return libroMapper.toResponseDto(libro);
     }
 
-    /**
-     * Quien puede gestionar ve todo; el resto recibe el catalogo ya filtrado por
-     * la base. Antes se traia la tabla entera y se descartaban los ocultos en
-     * memoria, que cuesta lo mismo tenga el catalogo diez libros o diez mil.
-     */
     @Override
     public List<LibroResponseDto> getAllLibros() {
         List<Libro> libros = visibilidad.puedeGestionar()
@@ -94,14 +89,6 @@ public class LibroServiceImpl implements LibroService {
         return libroMapper.toResponseDto(libroRepository.save(libro));
     }
 
-    /**
-     * El titulo es UNIQUE en la base. Sin este chequeo, cargar un libro repetido
-     * llegaba hasta el insert y volvia como error de integridad, sin decir cual
-     * era el problema. IllegalStateException ya esta mapeada a 409.
-     *
-     * Queda igual el handler de integridad: entre este chequeo y el insert hay
-     * una ventana en la que otra peticion puede tomar el mismo titulo.
-     */
     private void verificarTituloLibre(String titulo, UUID idQueSeEdita) {
         boolean repetido = idQueSeEdita == null
                 ? libroRepository.existsByTitulo(titulo)
@@ -112,12 +99,6 @@ public class LibroServiceImpl implements LibroService {
         }
     }
 
-    /**
-     * Editorial, anio, portada y estado llegaban desde el formulario pero no se
-     * persistian: el DTO no los declaraba y Jackson los descartaba en silencio.
-     * PUT reemplaza el recurso completo, asi que un cliente que omita un campo
-     * lo deja vacio; el unico consumidor los envia siempre.
-     */
     private void aplicar(Libro libro, LibroRequestDto request, Set<Categoria> categorias) {
         libro.setTitulo(request.titulo());
         libro.setAutor(request.autor());
@@ -131,21 +112,10 @@ public class LibroServiceImpl implements LibroService {
                 : EstadoLibroEnum.DISPONIBLE);
     }
 
-    /**
-     * Una cadena vacia se guarda como null. Un "" en la base obliga a que cada
-     * consumidor distinga despues entre "sin dato" y "dato vacio", que son lo
-     * mismo para todos estos campos.
-     */
     private String normalizar(String valor) {
         return (valor == null || valor.isBlank()) ? null : valor;
     }
 
-    /**
-     * Borrar un libro se lleva sus resenas y lo saca de los favoritos de quien
-     * lo guardo: sin eso las claves foraneas lo impedian y la respuesta era un
-     * 409 que decia "el dato ya existe". Todo en una transaccion: o se borra
-     * entero o no se borra nada.
-     */
     @Override
     @Transactional
     public void eliminarLibro(UUID id) {

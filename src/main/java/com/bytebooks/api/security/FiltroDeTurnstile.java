@@ -12,16 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * Exige el desafio de Turnstile en el registro, el unico formulario abierto que
- * crea algo en la base.
- *
- * El limite por IP de {@link FiltroDeLimiteDePedidos} frena a un script que
- * insiste desde una sola maquina; este frena al que reparte los pedidos entre
- * muchas IPs. Va sin {@code @Order}, despues de la cadena de Spring Security:
- * asi el 403 sale con las cabeceras de CORS y el navegador puede leer el
- * mensaje en lugar de reportar un error de red.
- */
 @Component
 public class FiltroDeTurnstile extends OncePerRequestFilter {
 

@@ -26,11 +26,6 @@ public class ManejadorGlobalDeErrores {
 
     private static final Logger log = LoggerFactory.getLogger(ManejadorGlobalDeErrores.class);
 
-    /**
-     * Pedidos mal armados por el cliente: JSON que no se puede leer, un id que
-     * no es UUID, un parametro obligatorio que falta. Sin estos handlers caian en
-     * el generico y salian como 500, que ademas no dejaba nada en el log.
-     */
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class,
             MissingServletRequestParameterException.class})
     public ResponseEntity<ErrorResponse> handlePedidoInvalido(Exception ex) {
@@ -77,16 +72,6 @@ public class ManejadorGlobalDeErrores {
                 .body(new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage()));
     }
 
-    /**
-     * Chocar contra una restriccion UNIQUE es un dato repetido que el usuario
-     * puede corregir, no una falla del servidor. Sin este handler caia en el
-     * generico y salia como 500.
-     *
-     * El mensaje es deliberadamente generico: el texto de la excepcion trae el
-     * nombre del indice y fragmentos de SQL, que no van a la respuesta. Los
-     * casos previsibles se detectan antes, en el service, con un mensaje que si
-     * dice cual es el campo repetido.
-     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleIntegridad(DataIntegrityViolationException ex) {
         return ResponseEntity
@@ -95,10 +80,6 @@ public class ManejadorGlobalDeErrores {
                         "El dato que intentas guardar ya existe."));
     }
 
-    /**
-     * Credenciales que no coinciden: 401, no 500. Es el camino de error mas
-     * transitado de la aplicacion y estaba cayendo en el handler generico.
-     */
     @ExceptionHandler(CredencialesInvalidasException.class)
     public ResponseEntity<ErrorResponse> handleCredenciales(CredencialesInvalidasException ex) {
         return ResponseEntity
@@ -106,13 +87,6 @@ public class ManejadorGlobalDeErrores {
                 .body(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()));
     }
 
-    /**
-     * Los permisos que se verifican dentro de un service —quien puede borrar una
-     * resena ajena, por ejemplo— lanzan AccessDeniedException ya adentro del
-     * controller. Este @RestControllerAdvice corre antes que el
-     * ExceptionTranslationFilter de Spring Security, asi que sin este handler la
-     * atrapaba el generico y una denegacion correcta salia como 500.
-     */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccesoDenegado(AccessDeniedException ex) {
         return ResponseEntity
@@ -133,8 +107,6 @@ public class ManejadorGlobalDeErrores {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
-        // La respuesta no dice nada a proposito; el detalle va al log, que es
-        // el unico lugar donde un 500 se puede investigar despues.
         log.error("Error no previsto", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

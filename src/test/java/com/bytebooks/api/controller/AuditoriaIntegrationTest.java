@@ -38,10 +38,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Los errores que encontro la auditoria de codigo del 2026-10-16, cada uno con
- * el caso que lo reproduce.
- */
 @AutoConfigureMockMvc
 class AuditoriaIntegrationTest extends PruebaDeIntegracion {
 
