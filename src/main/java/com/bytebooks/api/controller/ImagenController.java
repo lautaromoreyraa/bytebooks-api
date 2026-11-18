@@ -7,11 +7,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Permiso para subir una imagen. Pide sesion: la foto de perfil la sube
- * cualquier usuario, la portada de un libro solo quien puede editarlo, y en los
- * dos casos lo que se guarda despues pasa por el endpoint que corresponde.
- */
 @RestController
 @RequestMapping("/imagenes")
 public class ImagenController {

@@ -20,7 +20,6 @@ public interface LibroRepository extends JpaRepository<Libro, UUID> {
 
     boolean existsByTitulo(String titulo);
 
-    /** Para editar: el titulo puede repetirse consigo mismo, con nadie mas. */
     boolean existsByTituloAndIdNot(String titulo, UUID id);
 
     @Query("SELECT l.isbn FROM Libro l WHERE l.isbn IN :isbns")
@@ -29,31 +28,10 @@ public interface LibroRepository extends JpaRepository<Libro, UUID> {
     @Query("SELECT l.titulo FROM Libro l")
     List<String> findAllTitulos();
 
-    /*
-     * Las tres consultas de abajo traen las categorias en el mismo viaje.
-     * Libro.categorias es LAZY y el mapper las recorre siempre, asi que sin el
-     * fetch cada libro sumaba su propia consulta: 26 libros costaban 34 viajes a
-     * la base, y con 500 serian 500 por carga de la home.
-     *
-     * El ORDER BY tambien es nuevo: sin el, el orden de la grilla dependia de lo
-     * que devolviera el motor, y un fetch join lo cambia sin avisar.
-     *
-     * Sin DISTINCT a proposito: el join contra la tabla de categorias repite el
-     * libro una vez por categoria, pero Hibernate 6 ya descarta esos duplicados
-     * al armar las entidades. Escribirlo mandaria un SELECT DISTINCT de verdad a
-     * la base, que la obliga a comparar la sinopsis entera fila por fila.
-     */
 
     @Query("SELECT l FROM Libro l LEFT JOIN FETCH l.categorias ORDER BY l.titulo")
     List<Libro> findAllConCategorias();
 
-    /**
-     * El estado se filtra en la consulta y no despues en memoria: traer el
-     * catalogo entero para descartar la mitad crece con la tabla, no con lo que
-     * se muestra. La comparacion contempla el null porque hay libros viejos
-     * cargados antes de que el estado existiera, y en SQL {@code null <> 'OCULTO'}
-     * no es verdadero: sin esa rama desaparecerian del catalogo.
-     */
     @Query("""
             SELECT l FROM Libro l
             LEFT JOIN FETCH l.categorias
@@ -65,10 +43,6 @@ public interface LibroRepository extends JpaRepository<Libro, UUID> {
     @Query("SELECT l FROM Libro l LEFT JOIN FETCH l.categorias WHERE l.id = :id")
     Optional<Libro> findByIdConCategorias(@Param("id") UUID id);
 
-    /**
-     * Los favoritos salen por el mismo camino: el perfil es publico y llegaba a
-     * pedir una consulta de categorias por libro guardado.
-     */
     @Query("""
             SELECT l FROM Usuario u
             JOIN u.librosGuardados l
@@ -78,14 +52,7 @@ public interface LibroRepository extends JpaRepository<Libro, UUID> {
             """)
     List<Libro> findGuardadosPorUsuario(@Param("usuarioId") UUID usuarioId);
 
-    /**
-     * La tabla de favoritos la maneja Usuario (es el dueno de la relacion), asi
-     * que borrar un libro no la toca: sin esto, un libro guardado por alguien no
-     * se podia borrar por la clave foranea.
-     */
     @Modifying
     @Query(value = "DELETE FROM usuario_libros_guardados WHERE libro_id = :libroId", nativeQuery = true)
-    // El id viaja como texto: la columna es VARCHAR(36) y, en una consulta
-    // nativa, Hibernate manda el UUID como binario y no coincide con ninguna fila.
     void quitarDeFavoritos(@Param("libroId") String libroId);
 }

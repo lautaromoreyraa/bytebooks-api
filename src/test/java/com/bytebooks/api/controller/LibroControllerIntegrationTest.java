@@ -31,14 +31,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Recorre el camino completo —HTTP, seguridad, service, JPA, MySQL— porque lo que
- * se prueba aca depende de las reglas de ConfiguracionDeSeguridad y de las restricciones
- * de la base, y ninguna de las dos existe en un test unitario.
- */
-// Sin @Transactional a proposito: con rollback el insert no se descarga a la
-// base y las restricciones UNIQUE nunca se disparan. El aislamiento lo da el
-// deleteAll() de @BeforeEach.
 @AutoConfigureMockMvc
 class LibroControllerIntegrationTest extends PruebaDeIntegracion {
 
@@ -66,10 +58,6 @@ class LibroControllerIntegrationTest extends PruebaDeIntegracion {
         categoria = categoriaRepository.save(categoria);
     }
 
-    /**
-     * El principal es un String con el id: asi lo espera
-     * {@code @AuthenticationPrincipal String userId} en los controllers.
-     */
     private RequestPostProcessor comoRol(RolEnum rol) {
         return authentication(new UsernamePasswordAuthenticationToken(
                 UUID.randomUUID().toString(),
@@ -86,9 +74,6 @@ class LibroControllerIntegrationTest extends PruebaDeIntegracion {
     @Test
     @DisplayName("un libro sin estado sigue estando en el catalogo publico")
     void libroSinEstadoSigueVisible() throws Exception {
-        // El filtro por estado paso de la memoria a la consulta, y en SQL
-        // "null <> OCULTO" no es verdadero: sin contemplarlo, los libros
-        // cargados antes de que existiera el estado desaparecian del catalogo.
         Libro sinEstado = FabricaDeLibros.disponible("Cargado antes del estado");
         sinEstado.setEstadoLibro(null);
         guardar(sinEstado);

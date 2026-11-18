@@ -14,11 +14,6 @@ import java.util.UUID;
 
 @Repository
 public interface ResenaRepository extends JpaRepository<Resena, UUID> {
-    /**
-     * El autor viaja en la misma consulta: la respuesta muestra su nombre y,
-     * sin sesion abierta en la vista, leerlo despues del repositorio falla.
-     * Traerlo de a uno por resena seria ademas una consulta extra por fila.
-     */
     @EntityGraph(attributePaths = "usuario")
     Page<Resena> findByLibroId(UUID libroId, Pageable pageable);
     Optional<Resena> findByLibroIdAndUsuarioId(UUID libroId, UUID usuarioId);
@@ -26,7 +21,6 @@ public interface ResenaRepository extends JpaRepository<Resena, UUID> {
 
     long countByLibroId(UUID libroId);
 
-    /** Null si el libro no tiene resenas: AVG sobre cero filas no da cero, da nada. */
     @Query("SELECT AVG(r.puntuacion) FROM Resena r WHERE r.libro.id = :libroId")
     Double promedioDePuntuacion(@Param("libroId") UUID libroId);
 }

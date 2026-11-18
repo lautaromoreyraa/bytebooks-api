@@ -38,12 +38,6 @@ public class ConfiguracionDeSeguridad {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Origenes exactos, sin comodines. Con un patron como
-     * {@code bytebooks-frontend*.vercel.app}, cualquiera que creara un proyecto en
-     * Vercel con ese prefijo quedaba habilitado. La lista sale de CORS_ORIGENES;
-     * el default es el frontend en desarrollo.
-     */
     @Value("${app.cors.origenes}")
     private List<String> origenesPermitidos;
 
@@ -75,30 +69,21 @@ public class ConfiguracionDeSeguridad {
                     .authenticationEntryPoint(entryPoint)
                     .accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
-                // Publico
-                // La sonda de salud de Railway y del contenedor: sin token y,
-                // por show-details=never, sin revelar nada mas que UP o DOWN.
                 .requestMatchers(HttpMethod.GET,    "/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET,    "/libros", "/libros/**").permitAll()
                 .requestMatchers(HttpMethod.GET,    "/categorias", "/categorias/**").permitAll()
                 .requestMatchers(HttpMethod.GET,    "/usuarios/{id}").permitAll()
-                // Antes que la regla de abajo: su comodin tambien matchea "me",
-                // y esa peticion sin token llegaba al controller con el
-                // principal en null y salia como 500 en vez de 401.
                 .requestMatchers(HttpMethod.GET,    "/usuarios/me/favoritos").authenticated()
                 .requestMatchers(HttpMethod.GET,    "/usuarios/*/favoritos").permitAll()
-                // Moderador o Admin
                 .requestMatchers(HttpMethod.PUT,    "/libros/**").hasAnyRole("MODERATOR", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/libros/**").hasAnyRole("MODERATOR", "ADMIN")
-                // Solo Admin
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST,   "/libros/*/resenas").authenticated()
                 .requestMatchers(HttpMethod.POST,   "/libros/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST,   "/categorias/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/categorias/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/categorias/**").hasRole("ADMIN")
-                // Cualquier usuario autenticado
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers

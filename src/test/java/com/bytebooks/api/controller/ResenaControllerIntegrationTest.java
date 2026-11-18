@@ -39,10 +39,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Publicar, listar y borrar resenas. Lo mas delicado es quien puede borrar la
- * de otro, porque la regla no esta en ConfiguracionDeSeguridad sino adentro del service.
- */
 @AutoConfigureMockMvc
 class ResenaControllerIntegrationTest extends PruebaDeIntegracion {
 
@@ -186,8 +182,6 @@ class ResenaControllerIntegrationTest extends PruebaDeIntegracion {
     void editarLaPropia() throws Exception {
         UUID resena = publicar(autora, "Primera impresion", 3);
 
-        // El nombre sale del usuario de la resena, que se carga perezoso: sin
-        // sesion abierta en la vista tiene que leerse dentro de la transaccion.
         mockMvc.perform(put("/resenas/{id}", resena)
                         .with(como(autora))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -230,11 +224,6 @@ class ResenaControllerIntegrationTest extends PruebaDeIntegracion {
                 .andExpect(status().isNoContent());
     }
 
-    /**
-     * Fija la fecha a mano en vez de confiar en el {@code new Date()} del
-     * service: dos resenas publicadas seguidas pueden caer en el mismo instante
-     * y el orden dejaria de estar definido, que es justo lo que se prueba.
-     */
     private void fecharEn(UUID resenaId, long epochMillis) {
         Resena resena = resenaRepository.findById(resenaId).orElseThrow();
         resena.setFechaResena(new Date(epochMillis));
@@ -260,8 +249,6 @@ class ResenaControllerIntegrationTest extends PruebaDeIntegracion {
     @Test
     @DisplayName("el resumen promedia todas las resenas, no solo la primera pagina")
     void resumenSobreLaTablaEntera() throws Exception {
-        // 11 resenas: mas que el tamano de pagina, para que un promedio calculado
-        // sobre la primera pagina de otro numero que el correcto.
         int[] puntuaciones = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1};
         for (int puntuacion : puntuaciones) {
             publicar(usuarioRepository.save(FabricaDeUsuarios.con(RolEnum.ROLE_USER)),

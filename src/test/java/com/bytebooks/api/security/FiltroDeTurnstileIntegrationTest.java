@@ -26,11 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * El registro con Turnstile encendido. El cliente se simula: lo que se prueba
- * aca es que el filtro corta antes de crear la cuenta y que el 403 le llega al
- * navegador con CORS. La conversacion con Cloudflare la cubre TurnstileClientTest.
- */
 @AutoConfigureMockMvc
 class FiltroDeTurnstileIntegrationTest extends PruebaDeIntegracion {
 

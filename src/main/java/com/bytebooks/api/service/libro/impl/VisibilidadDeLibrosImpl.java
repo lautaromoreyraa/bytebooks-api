@@ -23,8 +23,6 @@ public class VisibilidadDeLibrosImpl implements VisibilidadDeLibros {
             return false;
         }
 
-        // El token anonimo de Spring tambien responde true a isAuthenticated(),
-        // asi que lo que decide de verdad es el rol, no el flag.
         return authentication.getAuthorities().stream()
                 .anyMatch(authority ->
                         RolEnum.ROLE_ADMIN.name().equals(authority.getAuthority())

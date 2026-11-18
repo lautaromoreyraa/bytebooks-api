@@ -11,7 +11,6 @@ class IpDelClienteTest {
     private static MockHttpServletRequest pedido() {
         MockHttpServletRequest pedido = new MockHttpServletRequest();
         pedido.setRemoteAddr("10.0.0.1");
-        // Lo que manda un atacante para saltear el limite: un X-Forwarded-For inventado.
         pedido.addHeader("X-Forwarded-For", "1.2.3.4, 203.0.113.9");
         return pedido;
     }

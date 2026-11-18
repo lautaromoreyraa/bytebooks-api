@@ -52,7 +52,6 @@ public class AutenticacionServiceImpl implements AutenticacionService {
     @Override
     public AutenticacionResponseDto register(RegistroRequestDto request) {
         if (usuarioRepository.existsByEmail(request.email())) {
-            // Mensaje generico para no revelar si el email existe (A06 - enumeracion)
             throw new IllegalStateException("No se pudo completar el registro con los datos proporcionados");
         }
 
