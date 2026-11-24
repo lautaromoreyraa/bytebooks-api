@@ -22,7 +22,7 @@ REST API behind **ByteBooks**, a community book catalog: readers browse books by
 
 | Layer | Choice |
 |---|---|
-| Language / framework | Java 21, Spring Boot 3.5 (Web, Data JPA, Security, Validation, Actuator) |
+| Language / framework | Java 21, Spring Boot 4.1 (Web, Data JPA, Security, Validation, Actuator) |
 | Database | MySQL 9, schema owned by Flyway |
 | Auth | Stateless JWT, BCrypt password hashing |
 | External API | Google Books (server-side client) |
